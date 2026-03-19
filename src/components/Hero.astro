@@ -14,7 +14,9 @@
       poster="https://images.pexels.com/photos/6069552/pexels-photo-6069552.jpeg?auto=compress&cs=tinysrgb&w=1600"
       aria-label="Fashion design studio background video"
     >
-      <source src="/hero.mp4" type="video/mp4" />
+      <source 
+        src={`${import.meta.env.BASE_URL}hero.mp4`} type="video/mp4" 
+      />      
       <!-- Fallback if video can't play -->
       <img
         src="https://images.pexels.com/photos/6069552/pexels-photo-6069552.jpeg?auto=compress&cs=tinysrgb&w=1600"

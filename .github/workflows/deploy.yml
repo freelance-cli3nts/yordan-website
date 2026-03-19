@@ -26,6 +26,9 @@ jobs:
         run: npm install
 
       - name: Build Astro site
+        env:
+          BASE_URL: ${{ format('/{0}/', github.event.repository.name) }}
+          SITE_URL: ${{ format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
         run: npm run build
 
       - name: Upload artifact

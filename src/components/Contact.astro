@@ -1,0 +1,239 @@
+---
+const socialLinks = [
+  {
+    name: "Instagram",
+    url: "https://www.instagram.com/yordan_mihalev?igsh=c2x2eW52dXcyb3Fo&utm_source=qr",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`
+//  },
+//  {
+//    name: "Pinterest",
+//    url: "#",
+//    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.372-12 12 0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146 1.124.347 2.317.535 3.554.535 6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/></svg>`
+//  },
+//  {
+//    name: "Behance",
+//    url: "#",
+//    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22 7h-7v-2h7v2zm1.726 10c-.442 1.297-2.029 3-5.101 3-3.074 0-5.564-1.729-5.564-5.675 0-3.91 2.325-5.92 5.466-5.92 3.082 0 4.964 1.782 5.375 4.426.078.506.109 1.188.095 2.14h-8.027c.13 3.211 3.483 3.312 4.588 2.029h3.168zm-7.686-4h4.965c-.105-1.547-1.136-2.219-2.477-2.219-1.466 0-2.277.768-2.488 2.219zm-9.574 6.988h-6.466v-14.967h6.953c5.476.081 5.58 5.444 2.72 6.906 3.461 1.26 3.577 8.061-3.207 8.061zm-3.466-8.988h3.584c2.508 0 2.906-3-.312-3h-3.272v3zm3.391 3h-3.391v3.016h3.341c3.055 0 2.868-3.016.05-3.016z"/></svg>`
+  },
+  {
+    name: "LinkedIn",
+    url: "https://www.linkedin.com/in/yordan-mihalev-84669188/",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>`
+  }
+];
+---
+
+<section id="contact" class="section-padding">
+  <div class="container-custom">
+    <div class="grid md:grid-cols-2 gap-12">
+      <!-- Contact Information -->
+      <div class="animate-on-scroll">
+        <h2 class="mb-8 text-primary-900">Get In Touch</h2>
+        
+        <p class="mb-10 text-lg">
+          Whether you're a production company looking for costume design services,
+          or an individual interested in custom fashion design, I'd love to hear from you.
+        </p>
+        
+        <div class="mb-8">
+          <h3 class="text-xl mb-4 font-serif text-primary-800">Contact Information</h3>
+          
+          <div class="flex items-start mb-4">
+            <div class="mr-4 text-primary-600">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold mb-1">Email</h4>
+              <a href="mailto:mihalevyordan@gmail.com" class="text-gray-600 hover:text-primary-600 transition-colors">
+                mihalevyordan@gmail.com
+              </a>
+            </div>
+          </div>
+          
+          <div class="flex items-start mb-4">
+            <div class="mr-4 text-primary-600">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold mb-1">Phone</h4>
+              <a href="tel:+359897857153" class="text-gray-600 hover:text-primary-600 transition-colors">
+                +359 897 857 153
+              </a>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="mr-4 text-primary-600">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold mb-1">Studio</h4>
+              <p class="text-gray-600">
+                123 Design Avenue<br>
+                Sofia, Bulgaria
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-xl mb-4 font-serif text-primary-800">Follow Me</h3>
+          <div class="flex gap-4">
+            {socialLinks.map(link => (
+              <a 
+                href={link.url} 
+                aria-label={`Follow on ${link.name}`}
+                class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:text-primary-600 hover:border-primary-600 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Fragment set:html={link.icon} />
+              </a>
+            ))}
+          </div>
+        </div>
+        
+        <div class="mt-8">
+          <a href="/Julia_Bennett_Costume_Designer_Resume.pdf" class="btn-outline flex items-center w-max" target="_blank" rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Download Résumé/CV
+          </a>
+        </div>
+      </div>
+      
+      <!-- Contact Form -->
+      <div class="animate-on-scroll">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+          <h3 class="text-2xl mb-6 font-serif">Send a Message</h3>
+          
+          <form id="contact-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                required
+              />
+            </div>
+            
+            <div>
+              <label for="project-type" class="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+              <select
+                id="project-type"
+                name="project-type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="film">Film Production</option>
+                <option value="theater">Theater Production</option>
+                <option value="fashion">Fashion Design</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                required
+              ></textarea>
+            </div>
+            
+            <button
+              type="submit"
+              class="w-full btn-primary"
+            >
+              Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<script>
+  // Initialize EmailJS with your user ID
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize EmailJS only after DOM is loaded and script is available
+    emailjs.init("4odIy3ek0pUAxmrLa");
+    
+    const form = document.getElementById('contact-form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Disable button and show loading state
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sending...';
+      
+      // Prepare template parameters
+      const templateParams = {
+        name: form.name.value,
+        email: form.email.value,
+        subject: form.subject.value,
+        project_type: form['project-type'].value, // Use bracket notation for attribute names with hyphens
+        message: form.message.value
+      };
+      
+      // Send email using EmailJS
+      emailjs.send(
+        'service_xnt843p',  // Get from EmailJS dashboard
+        'template_np3hg0l', // Get from EmailJS dashboard
+        templateParams
+      )
+      .then(() => {
+        form.reset();
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Message';
+        alert('Thank you for your message! I will get back to you soon.');
+      })
+      .catch(error => {
+        console.error('Error sending email:', error);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Message';
+        alert('Sorry, there was an error sending your message. Please try again later.');
+      });
+    });
+  });
+</script>

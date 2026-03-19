@@ -1,0 +1,228 @@
+---
+const portfolioItems = [
+  {
+    id: 1,
+    title: "Period Drama Costumes",
+    category: "film",
+    description: "Victorian-era costumes for historical drama",
+    images: [
+      "/arms & the men/1.JPG",
+      "/arms & the men/2.JPG",
+      "/arms & the men/3.jpg",
+      "/arms & the men/4.jpg",
+      "/arms & the men/5.jpg",
+      "/arms & the men/6.jpg",
+      "/arms & the men/7.jpg",
+      "/arms & the men/8.jpg",
+      "/arms & the men/9.jpg",
+      "/arms & the men/10.jpg",
+      "/arms & the men/11.jpg",
+      "/arms & the men/12.jpg",
+      "/arms & the men/13.JPG",
+      "/arms & the men/14.jpg",
+      "/arms & the men/15.jpg",
+      "/arms & the men/16.jpg",
+      "/arms & the men/17.jpg",
+      "/arms & the men/18.JPG",
+      "/arms & the men/19.jpg",
+      "/arms & the men/20.jpg",
+      "/arms & the men/21.JPG",
+      "/arms & the men/22.jpg",
+    ],
+  },
+  {
+    id: 2,
+    title: "Shakespearean Theater",
+    category: "theater",
+    description: "Contemporary take on classic theater costumes",
+    images: [
+      "/dolls house/1.png",
+      "/dolls house/2.JPG",
+      "/dolls house/3.JPG",
+      "/dolls house/4.JPG",
+      "/dolls house/5.JPG",
+      "/dolls house/6.JPG",
+      "/dolls house/7.JPG",
+      "/dolls house/10.JPG",
+      "/dolls house/11.JPG",
+      "/dolls house/12.JPG",
+      "/dolls house/13.JPG",
+      "/dolls house/14.JPG",
+      "/dolls house/15.WEBP",
+      "/dolls house/16.JPG",
+      "/dolls house/8.WEBP",
+      "/dolls house/9.WEBP",
+      "/dolls house/video.mp4",
+    ],
+  },
+  {
+    id: 3,
+    title: "Avant-Garde Fashion",
+    category: "fashion",
+    description: "Experimental fashion designs for runway",
+    images: [
+      "/yordan-materials/1.jpg",
+      "/yordan-materials/1.1.jpg",
+      "/yordan-materials/2.jpg",
+      "/yordan-materials/3.jpg",
+      "/yordan-materials/3.1.jpg",
+      "/yordan-materials/4.jpg",
+      "/yordan-materials/5.jpg",
+      "/yordan-materials/6.jpg",
+      "/yordan-materials/7.jpg",
+      "/yordan-materials/9.jpg",
+      "/yordan-materials/10.jpg",
+      "/yordan-materials/11.jpg",
+      "/yordan-materials/12.jpg",
+      "/yordan-materials/13.jpg",
+      "/yordan-materials/14.jpg",
+      "/yordan-materials/15.jpg",
+      "/yordan-materials/16.jpg",
+    ],
+  },
+  {
+    id: 4,
+    title: "Fantasy Series",
+    category: "film",
+    description: "Elaborate costumes for fantasy franchise",
+    images: [
+      "/arms & the men/1.JPG",
+      "/arms & the men/4.jpg",
+      "/arms & the men/7.jpg",
+      "/arms & the men/10.jpg",
+      "/arms & the men/13.JPG",
+      "/arms & the men/16.jpg",
+      "/arms & the men/19.jpg",
+      "/arms & the men/22.jpg",
+    ],
+  },
+  {
+    id: 5,
+    title: "Ballet Production",
+    category: "theater",
+    description: "Costume design for contemporary ballet",
+    images: [
+      "/dolls house/1.png",
+      "/dolls house/3.JPG",
+      "/dolls house/5.JPG",
+      "/dolls house/7.JPG",
+      "/dolls house/10.JPG",
+      "/dolls house/12.JPG",
+      "/dolls house/14.JPG",
+      "/dolls house/16.JPG",
+      "/dolls house/8.WEBP",
+      "/dolls house/video.mp4",
+    ],
+  },
+  {
+    id: 6,
+    title: "Editorial Collection",
+    category: "fashion",
+    description: "Fashion design for magazine editorial",
+    images: [
+      "/yordan-materials/1.jpg",
+      "/yordan-materials/3.jpg",
+      "/yordan-materials/5.jpg",
+      "/yordan-materials/7.jpg",
+      "/yordan-materials/9.jpg",
+      "/yordan-materials/11.jpg",
+      "/yordan-materials/13.jpg",
+      "/yordan-materials/15.jpg",
+    ],
+  }
+];
+
+const categories = ["all", "film", "theater", "fashion"];
+---
+
+<section id="portfolio" class="section-padding">
+  <div class="container-custom">
+    <div class="text-center mb-12 animate-on-scroll">
+      <h2 class="mb-4">Portfolio</h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        A showcase of costume designs across film, theater, and fashion projects
+      </p>
+    </div>
+    
+    <!-- Portfolio Categories -->
+    <div class="flex flex-wrap justify-center gap-4 mb-12 animate-on-scroll">
+      {categories.map(category => (
+        <button 
+          class="portfolio-filter px-6 py-2 rounded-full border-2 border-primary-200 transition-all duration-300 capitalize hover:bg-primary-50"
+          data-category={category}
+        >
+          {category}
+        </button>
+      ))}
+    </div>
+    
+    <!-- Portfolio Grid -->
+    <div class="portfolio-grid animate-on-scroll">
+      {portfolioItems.map(item => (
+        <div class="portfolio-item" data-category={item.category}>
+          <img 
+            src={item.images[0]} 
+            alt={item.title} 
+            class="w-full h-80 object-cover"
+          />
+          <div class="portfolio-overlay">
+            <div class="text-center p-4">
+              <h3 class="text-white text-xl mb-2 font-serif">{item.title}</h3>
+              <p class="text-gray-200 text-sm">{item.description}</p>
+              <span class="inline-block mt-3 bg-accent-500 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wider">
+                {item.category}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Portfolio filtering
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterButtons = document.querySelectorAll('.portfolio-filter');
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    
+    // Set 'all' category as active by default
+    const allButton = document.querySelector('[data-category="all"]');
+    allButton.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
+    
+    // Filter function
+    const filterPortfolio = (category) => {
+      portfolioItems.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        
+        if (category === 'all' || category === itemCategory) {
+          item.style.display = 'block';
+          // Add animation for appearing items
+          item.classList.add('animate-fade-in');
+          setTimeout(() => {
+            item.classList.remove('animate-fade-in');
+          }, 500);
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    };
+    
+    // Click event for filter buttons
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Reset all buttons
+        filterButtons.forEach(btn => {
+          btn.classList.remove('bg-primary-600', 'text-white', 'border-primary-600');
+        });
+        
+        // Set active button
+        button.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
+        
+        // Filter portfolio
+        const category = button.getAttribute('data-category');
+        filterPortfolio(category);
+      });
+    });
+  });
+</script>

@@ -1,0 +1,98 @@
+---
+const navItems = [
+  { name: "Home", url: "#home" },
+  { name: "About", url: "#about" },
+  { name: "Portfolio", url: "#portfolio" },
+  { name: "Testimonials", url: "#testimonials" },
+  { name: "Contact", url: "#contact" },
+];
+---
+
+<header class="fixed w-full top-0 z-50 transition-all duration-300" id="main-header">
+  <div class="container-custom py-4 flex items-center justify-between">
+    <a href="#home" class="text-2xl font-serif font-bold tracking-tight">
+      <span class="text-primary-700">YORDANS</span>
+      <span class="text-primary-950">DESIGNS</span>
+    </a>
+    
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex items-center space-x-8">
+      {navItems.map((item) => (
+        <a 
+          href={item.url} 
+          class="text-gray-800 hover:text-primary-600 font-medium transition-colors duration-300"
+        >
+          {item.name}
+        </a>
+      ))}
+    </nav>
+    
+    <!-- Mobile Menu Button -->
+    <button 
+      class="md:hidden text-gray-800 hover:text-primary-600 focus:outline-none" 
+      id="mobile-menu-button"
+      aria-label="Toggle mobile menu"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Mobile Menu (Hidden by default) -->
+  <div 
+    id="mobile-menu" 
+    class="md:hidden bg-white w-full absolute transform -translate-y-full transition-transform duration-300 ease-in-out shadow-lg"
+  >
+    <div class="container-custom py-4 flex flex-col space-y-4">
+      {navItems.map((item) => (
+        <a 
+          href={item.url} 
+          class="text-gray-800 hover:text-primary-600 py-2 block font-medium mobile-menu-link"
+        >
+          {item.name}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+
+<script>
+  // Header scroll behavior
+  const header = document.getElementById('main-header');
+  const handleScroll = () => {
+    if (window.scrollY > 50) {
+      header.classList.add('bg-white', 'shadow-md');
+      header.classList.remove('bg-transparent');
+    } else {
+      header.classList.remove('bg-white', 'shadow-md');
+      header.classList.add('bg-transparent');
+    }
+  };
+  
+  // Initialize header state
+  handleScroll();
+  window.addEventListener('scroll', handleScroll);
+  
+  // Mobile menu toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileMenuLinks = document.querySelectorAll('.mobile-menu-link');
+  
+  const toggleMobileMenu = () => {
+    if (mobileMenu.classList.contains('-translate-y-full')) {
+      mobileMenu.classList.remove('-translate-y-full');
+      mobileMenu.classList.add('translate-y-0');
+    } else {
+      mobileMenu.classList.add('-translate-y-full');
+      mobileMenu.classList.remove('translate-y-0');
+    }
+  };
+  
+  mobileMenuButton.addEventListener('click', toggleMobileMenu);
+  
+  // Close mobile menu when clicking on links
+  mobileMenuLinks.forEach(link => {
+    link.addEventListener('click', toggleMobileMenu);
+  });
+</script>

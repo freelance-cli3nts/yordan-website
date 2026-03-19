@@ -1,0 +1,179 @@
+---
+const testimonials = [
+  {
+    quote: "The costumes created for our historical drama were not only visually stunning but also perfectly captured the essence of each character. Working with such a talented designer made our production truly exceptional.",
+    author: "Sarah Johnson",
+    role: "Film Director",
+    image: "https://images.pexels.com/photos/7247412/pexels-photo-7247412.jpeg?auto=compress&cs=tinysrgb&w=1600"
+  },
+  {
+    quote: "The attention to detail and historical accuracy in the costume design elevated our theater production to a new level. The audience was completely transported to another era.",
+    author: "Michael Chen",
+    role: "Theater Producer",
+    image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1600"
+  },
+  {
+    quote: "Our fashion collection received incredible praise, largely due to the innovative design elements. The perfect balance of avant-garde and wearability made the pieces truly stand out.",
+    author: "Emma Rodriguez",
+    role: "Fashion Brand Director",
+    image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1600"
+  }
+];
+
+const collaborations = [
+  "HBO", "Royal Theater Company", "Universal Studios", "Paris Fashion Week", 
+  "National Ballet", "Netflix", "Metropolitan Opera", "Vogue"
+];
+---
+
+<section id="testimonials" class="section-padding bg-primary-50">
+  <div class="container-custom">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="mb-4">Client Testimonials</h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        What clients and collaborators have to say about working together
+      </p>
+    </div>
+    
+    <!-- Testimonials Slider -->
+    <div class="relative testimonial-slider animate-on-scroll overflow-hidden">
+      <div class="testimonial-track flex transition-transform duration-500 ease-in-out">
+        {testimonials.map((testimonial, index) => (
+          <div class="testimonial-slide min-w-full px-4">
+            <div class="bg-white rounded-xl shadow-lg p-8 md:p-10 h-full flex flex-col">
+              <div class="mb-6">
+                <svg class="w-10 h-10 text-primary-300" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11.192 15.757c0-.88-.23-1.618-.69-2.217-.326-.412-.768-.683-1.327-.812-.55-.128-1.07-.137-1.54-.028-.16-.95.1-1.89.41-2.8.82-2.28 2.24-4.04 4.3-5.29l-1.09-1.73c-2.55 1.13-4.42 2.53-5.64 4.2-.98 1.34-1.39 3.3-1.39 5.88 0 2.35.55 4.23 1.34 5.55.85 1.42 2.18 2.22 3.97 2.22 1.59 0 2.82-.53 3.64-1.58.8-1.02 1.26-2.37 1.26-4.05zm10.15 0c0-.88-.23-1.618-.69-2.217-.326-.42-.77-.695-1.327-.825-.56-.13-1.07-.14-1.54-.03-.16-.95.1-1.89.41-2.8.82-2.28 2.24-4.04 4.3-5.29L21.426 3c-2.54 1.13-4.42 2.53-5.64 4.2-.98 1.34-1.39 3.3-1.39 5.88 0 2.35.55 4.23 1.34 5.55.85 1.42 2.18 2.22 3.97 2.22 1.59 0 2.82-.53 3.64-1.58.8-1.02 1.26-2.37 1.26-4.05z" />
+                </svg>
+              </div>
+              
+              <p class="text-gray-700 mb-8 flex-grow">
+                {testimonial.quote}
+              </p>
+              
+              <div class="flex items-center">
+                <img 
+                  src={testimonial.image} 
+                  alt={testimonial.author} 
+                  class="w-14 h-14 rounded-full object-cover mr-4"
+                />
+                <div>
+                  <h4 class="font-semibold text-lg">{testimonial.author}</h4>
+                  <p class="text-gray-600">{testimonial.role}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <!-- Navigation Buttons -->
+      <button class="testimonial-prev absolute top-1/2 -translate-y-1/2 left-2 z-10 bg-white rounded-full p-2 shadow-md opacity-70 hover:opacity-100 transition-opacity">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <button class="testimonial-next absolute top-1/2 -translate-y-1/2 right-2 z-10 bg-white rounded-full p-2 shadow-md opacity-70 hover:opacity-100 transition-opacity">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+      
+      <!-- Dots -->
+      <div class="testimonial-dots flex justify-center mt-8 space-x-2">
+        {testimonials.map((_, index) => (
+          <button class="testimonial-dot w-3 h-3 rounded-full bg-gray-300 hover:bg-primary-500 transition-colors" data-index={index}></button>
+        ))}
+      </div>
+    </div>
+    
+    <!-- Collaborations -->
+    <div class="mt-20 animate-on-scroll">
+      <h3 class="text-center mb-10">Notable Collaborations</h3>
+      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+        {collaborations.map(collaboration => (
+          <div class="text-xl md:text-2xl font-serif text-gray-700 hover:text-primary-700 transition-colors">
+            {collaboration}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Testimonial slider
+    const track = document.querySelector('.testimonial-track');
+    const slides = document.querySelectorAll('.testimonial-slide');
+    const nextButton = document.querySelector('.testimonial-next');
+    const prevButton = document.querySelector('.testimonial-prev');
+    const dots = document.querySelectorAll('.testimonial-dot');
+    
+    // Set initial state
+    let currentIndex = 0;
+    const slideWidth = 100; // percentage
+    
+    // Select first dot as active
+    dots[0].classList.add('bg-primary-500');
+    
+    const updateSlider = (index) => {
+      // Update track position
+      track.style.transform = `translateX(-${index * slideWidth}%)`;
+      
+      // Update dots
+      dots.forEach((dot, i) => {
+        if (i === index) {
+          dot.classList.add('bg-primary-500');
+          dot.classList.remove('bg-gray-300');
+        } else {
+          dot.classList.remove('bg-primary-500');
+          dot.classList.add('bg-gray-300');
+        }
+      });
+      
+      // Update current index
+      currentIndex = index;
+    };
+    
+    // Next button
+    nextButton.addEventListener('click', () => {
+      const nextIndex = (currentIndex + 1) % slides.length;
+      updateSlider(nextIndex);
+    });
+    
+    // Previous button
+    prevButton.addEventListener('click', () => {
+      const prevIndex = (currentIndex - 1 + slides.length) % slides.length;
+      updateSlider(prevIndex);
+    });
+    
+    // Dot navigation
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        updateSlider(index);
+      });
+    });
+    
+    // Auto slide (optional)
+    let autoSlideInterval;
+    const startAutoSlide = () => {
+      autoSlideInterval = setInterval(() => {
+        const nextIndex = (currentIndex + 1) % slides.length;
+        updateSlider(nextIndex);
+      }, 5000);
+    };
+    
+    const stopAutoSlide = () => {
+      clearInterval(autoSlideInterval);
+    };
+    
+    // Start auto sliding
+    startAutoSlide();
+    
+    // Stop on hover/interaction
+    const slider = document.querySelector('.testimonial-slider');
+    slider.addEventListener('mouseenter', stopAutoSlide);
+    slider.addEventListener('mouseleave', startAutoSlide);
+  });
+</script>

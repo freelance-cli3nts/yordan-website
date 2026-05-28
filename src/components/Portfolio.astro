@@ -5,8 +5,9 @@ const portfolioItems = [
     title: "Period Drama Costumes",
     category: "film",
     description: "Victorian-era costumes for historical drama",
+    featured: true,
+    thumbnail: "/arms & the men/1.JPG",
     images: [
-      "/arms & the men/1.JPG",
       "/arms & the men/2.JPG",
       "/arms & the men/3.jpg",
       "/arms & the men/4.jpg",
@@ -35,8 +36,9 @@ const portfolioItems = [
     title: "Shakespearean Theater",
     category: "theater",
     description: "Contemporary take on classic theater costumes",
+    featured: true,
+    thumbnail: "/dolls house/1.png",
     images: [
-      "/dolls house/1.png",
       "/dolls house/2.JPG",
       "/dolls house/3.JPG",
       "/dolls house/4.JPG",
@@ -60,8 +62,9 @@ const portfolioItems = [
     title: "Avant-Garde Fashion",
     category: "fashion",
     description: "Experimental fashion designs for runway",
+    featured: true,
+    thumbnail: "/yordan-materials/1.jpg",
     images: [
-      "/yordan-materials/1.jpg",
       "/yordan-materials/1.1.jpg",
       "/yordan-materials/2.jpg",
       "/yordan-materials/3.jpg",
@@ -85,6 +88,7 @@ const portfolioItems = [
     title: "Fantasy Series",
     category: "film",
     description: "Elaborate costumes for fantasy franchise",
+    thumbnail: "/arms & the men/13.JPG",
     images: [
       "/arms & the men/1.JPG",
       "/arms & the men/4.jpg",
@@ -101,6 +105,7 @@ const portfolioItems = [
     title: "Ballet Production",
     category: "theater",
     description: "Costume design for contemporary ballet",
+    thumbnail: "/dolls house/5.JPG",
     images: [
       "/dolls house/1.png",
       "/dolls house/3.JPG",
@@ -119,6 +124,7 @@ const portfolioItems = [
     title: "Editorial Collection",
     category: "fashion",
     description: "Fashion design for magazine editorial",
+    thumbnail: "/yordan-materials/11.jpg",
     images: [
       "/yordan-materials/1.jpg",
       "/yordan-materials/3.jpg",
@@ -135,94 +141,259 @@ const portfolioItems = [
 const categories = ["all", "film", "theater", "fashion"];
 ---
 
-<section id="portfolio" class="section-padding">
+<section id="costume-design" class="section-padding">
   <div class="container-custom">
-    <div class="text-center mb-12 animate-on-scroll">
-      <h2 class="mb-4">Portfolio</h2>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-        A showcase of costume designs across film, theater, and fashion projects
-      </p>
-    </div>
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5 animate-on-scroll">
+      <h2>Portfolio</h2>
     
-    <!-- Portfolio Categories -->
-    <div class="flex flex-wrap justify-center gap-4 mb-12 animate-on-scroll">
-      {categories.map(category => (
-        <button 
-          class="portfolio-filter px-6 py-2 rounded-full border-2 border-primary-200 transition-all duration-300 capitalize hover:bg-primary-50"
-          data-category={category}
-        >
-          {category}
-        </button>
-      ))}
+      <!-- Portfolio Categories -->
+      <div class="flex flex-wrap gap-2 animate-on-scroll">
+        {categories.map(category => (
+          <button 
+            class="portfolio-filter px-4 py-1.5 rounded-full border border-primary-500/30 text-sm text-gray-300 transition-all duration-300 capitalize hover:border-primary-400 hover:text-primary-300"
+            data-category={category}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
     </div>
     
     <!-- Portfolio Grid -->
     <div class="portfolio-grid animate-on-scroll">
       {portfolioItems.map(item => (
-        <div class="portfolio-item" data-category={item.category}>
-          <img 
-            src={item.images[0]} 
-            alt={item.title} 
-            class="w-full h-80 object-cover"
-          />
-          <div class="portfolio-overlay">
-            <div class="text-center p-4">
-              <h3 class="text-white text-xl mb-2 font-serif">{item.title}</h3>
-              <p class="text-gray-200 text-sm">{item.description}</p>
-              <span class="inline-block mt-3 bg-accent-500 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wider">
-                {item.category}
-              </span>
+        <button
+          type="button"
+          class="portfolio-item group cursor-pointer text-left"
+          data-category={item.category}
+          data-project-id={item.id}
+          data-featured={item.featured ? "true" : "false"}
+          aria-label={`View ${item.title} gallery`}
+        >
+          <div class="portfolio-item-media relative overflow-hidden">
+            <img 
+              src={item.thumbnail} 
+              alt={item.title} 
+              class="w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[21/9] object-cover"
+            />
+            <div class="portfolio-overlay">
+              <div class="text-center p-3 w-full">
+                <span class="inline-block bg-primary-500/90 text-surface-950 text-xs px-3 py-1 rounded-full uppercase tracking-wider">
+                  {item.category}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+          <div class="portfolio-item-caption">
+            <h3 class="font-serif text-base text-white">{item.title}</h3>
+            <p class="mt-0.5 text-[10px] uppercase tracking-wider text-primary-400">{item.category}</p>
+          </div>
+        </button>
       ))}
     </div>
   </div>
 </section>
 
-<script>
-  // Portfolio filtering
+<!-- Project gallery modal -->
+<div
+  id="portfolio-modal"
+  class="fixed inset-0 z-50 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="portfolio-modal-title"
+>
+  <div class="portfolio-modal-backdrop absolute inset-0 bg-black/90"></div>
+
+  <div class="relative z-10 flex h-full flex-col items-center justify-center p-4 md:p-8">
+    <button
+      type="button"
+      class="portfolio-modal-close absolute top-4 right-4 z-20 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+      aria-label="Close gallery"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <h3 id="portfolio-modal-title" class="mb-4 text-center font-serif text-xl text-white md:text-2xl"></h3>
+
+    <div class="relative w-full max-w-5xl overflow-hidden">
+      <div class="portfolio-modal-track flex transition-transform duration-500 ease-in-out"></div>
+
+      <button
+        type="button"
+        class="portfolio-modal-prev absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md transition-opacity hover:bg-white disabled:opacity-30"
+        aria-label="Previous image"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="portfolio-modal-next absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md transition-opacity hover:bg-white disabled:opacity-30"
+        aria-label="Next image"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="portfolio-modal-dots mt-6 flex flex-wrap justify-center gap-2"></div>
+    <p class="portfolio-modal-counter mt-2 text-sm text-white/70"></p>
+  </div>
+</div>
+
+<script define:vars={{ portfolioItems }}>
   document.addEventListener('DOMContentLoaded', () => {
     const filterButtons = document.querySelectorAll('.portfolio-filter');
-    const portfolioItems = document.querySelectorAll('.portfolio-item');
-    
-    // Set 'all' category as active by default
-    const allButton = document.querySelector('[data-category="all"]');
-    allButton.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
-    
-    // Filter function
+    const portfolioCards = document.querySelectorAll('.portfolio-item');
+    const modal = document.getElementById('portfolio-modal');
+    const backdrop = modal.querySelector('.portfolio-modal-backdrop');
+    const closeButton = modal.querySelector('.portfolio-modal-close');
+    const titleEl = document.getElementById('portfolio-modal-title');
+    const track = modal.querySelector('.portfolio-modal-track');
+    const prevButton = modal.querySelector('.portfolio-modal-prev');
+    const nextButton = modal.querySelector('.portfolio-modal-next');
+    const dotsContainer = modal.querySelector('.portfolio-modal-dots');
+    const counterEl = modal.querySelector('.portfolio-modal-counter');
+
+    let currentSlide = 0;
+    let slideCount = 0;
+
     const filterPortfolio = (category) => {
-      portfolioItems.forEach(item => {
+      portfolioCards.forEach(item => {
         const itemCategory = item.getAttribute('data-category');
-        
-        if (category === 'all' || category === itemCategory) {
-          item.style.display = 'block';
-          // Add animation for appearing items
+        const isFeatured = item.getAttribute('data-featured') === 'true';
+        const shouldShow = category === 'all' ? isFeatured : itemCategory === category;
+
+        item.style.display = shouldShow ? 'block' : 'none';
+
+        if (shouldShow) {
           item.classList.add('animate-fade-in');
-          setTimeout(() => {
-            item.classList.remove('animate-fade-in');
-          }, 500);
-        } else {
-          item.style.display = 'none';
+          setTimeout(() => item.classList.remove('animate-fade-in'), 500);
         }
       });
     };
-    
-    // Click event for filter buttons
+
+    const pauseVideos = () => {
+      track.querySelectorAll('video').forEach(video => video.pause());
+    };
+
+    const updateCarousel = (index) => {
+      pauseVideos();
+      track.style.transform = `translateX(-${index * 100}%)`;
+
+      dotsContainer.querySelectorAll('.portfolio-modal-dot').forEach((dot, i) => {
+        dot.classList.toggle('bg-primary-500', i === index);
+        dot.classList.toggle('bg-white/40', i !== index);
+      });
+
+      counterEl.textContent = `${index + 1} / ${slideCount}`;
+      prevButton.disabled = slideCount <= 1;
+      nextButton.disabled = slideCount <= 1;
+      currentSlide = index;
+    };
+
+    const buildSlides = (images) => {
+      track.innerHTML = '';
+      dotsContainer.innerHTML = '';
+      slideCount = images.length;
+
+      images.forEach((src, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'portfolio-modal-slide flex min-w-full items-center justify-center px-12';
+
+        if (src.toLowerCase().endsWith('.mp4')) {
+          const video = document.createElement('video');
+          video.src = src;
+          video.controls = true;
+          video.className = 'max-h-[70vh] w-full object-contain';
+          slide.appendChild(video);
+        } else {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.className = 'max-h-[70vh] w-full object-contain';
+          slide.appendChild(img);
+        }
+
+        track.appendChild(slide);
+
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'portfolio-modal-dot h-2.5 w-2.5 rounded-full bg-white/40 transition-colors hover:bg-primary-300';
+        dot.setAttribute('aria-label', `Go to image ${index + 1}`);
+        dot.addEventListener('click', () => updateCarousel(index));
+        dotsContainer.appendChild(dot);
+      });
+
+      updateCarousel(0);
+    };
+
+    const openModal = (projectId) => {
+      const project = portfolioItems.find(item => item.id === projectId);
+      if (!project) return;
+
+      titleEl.textContent = project.title;
+      buildSlides(project.images);
+
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('overflow-hidden');
+    };
+
+    const closeModal = () => {
+      pauseVideos();
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('overflow-hidden');
+    };
+
+    const allButton = document.querySelector('[data-category="all"]');
+    allButton.classList.add('bg-primary-500', 'text-surface-950', 'border-primary-500');
+    filterPortfolio('all');
+
     filterButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // Reset all buttons
         filterButtons.forEach(btn => {
-          btn.classList.remove('bg-primary-600', 'text-white', 'border-primary-600');
+          btn.classList.remove('bg-primary-500', 'text-surface-950', 'border-primary-500');
         });
-        
-        // Set active button
-        button.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
-        
-        // Filter portfolio
-        const category = button.getAttribute('data-category');
-        filterPortfolio(category);
+
+        button.classList.add('bg-primary-500', 'text-surface-950', 'border-primary-500');
+        filterPortfolio(button.getAttribute('data-category'));
       });
+    });
+
+    portfolioCards.forEach(card => {
+      card.addEventListener('click', () => {
+        openModal(Number(card.getAttribute('data-project-id')));
+      });
+    });
+
+    prevButton.addEventListener('click', () => {
+      updateCarousel((currentSlide - 1 + slideCount) % slideCount);
+    });
+
+    nextButton.addEventListener('click', () => {
+      updateCarousel((currentSlide + 1) % slideCount);
+    });
+
+    closeButton.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (event) => {
+      if (modal.classList.contains('hidden')) return;
+
+      if (event.key === 'Escape') {
+        closeModal();
+      } else if (event.key === 'ArrowLeft') {
+        updateCarousel((currentSlide - 1 + slideCount) % slideCount);
+      } else if (event.key === 'ArrowRight') {
+        updateCarousel((currentSlide + 1) % slideCount);
+      }
     });
   });
 </script>

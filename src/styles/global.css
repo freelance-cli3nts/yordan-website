@@ -4,12 +4,23 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased text-gray-100;
+    background-color: #061419;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 15% -10%, rgba(45, 212, 191, 0.18) 0%, transparent 100%),
+      radial-gradient(ellipse 70% 45% at 85% 110%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(13, 148, 136, 0.06) 0%, transparent 60%),
+      linear-gradient(155deg, #050f14 0%, #071820 35%, #0a2229 65%, #061419 100%);
+    background-attachment: fixed;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif text-white;
   }
   
   h1 {
@@ -17,54 +28,93 @@
   }
   
   h2 {
-    @apply text-3xl sm:text-4xl font-semibold leading-tight;
+    @apply text-2xl sm:text-3xl font-semibold leading-tight;
   }
   
   h3 {
-    @apply text-2xl font-semibold leading-snug;
+    @apply text-xl font-semibold leading-snug;
   }
   
   p {
-    @apply leading-relaxed;
+    @apply leading-relaxed text-gray-300;
   }
 }
 
 @layer components {
   .container-custom {
-    @apply container mx-auto px-6 lg:px-8;
+    @apply container mx-auto px-3 sm:px-4 lg:px-5 max-w-[1400px];
   }
   
   .section-padding {
-    @apply py-16 md:py-24;
+    @apply py-8 md:py-10;
   }
   
   .btn {
-    @apply inline-block px-8 py-3 rounded-md text-center font-medium transition-all duration-300;
+    @apply inline-block px-6 py-2.5 rounded-md text-center font-medium transition-all duration-300;
   }
   
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700;
+    @apply btn bg-primary-500 text-surface-950 hover:bg-primary-400;
   }
   
   .btn-secondary {
-    @apply btn bg-secondary-600 text-white hover:bg-secondary-700;
+    @apply btn bg-secondary-600 text-white hover:bg-secondary-500;
   }
   
   .btn-accent {
-    @apply btn bg-accent-500 text-white hover:bg-accent-600;
+    @apply btn bg-accent-500 text-surface-950 hover:bg-accent-400;
   }
   
   .btn-outline {
-    @apply btn border-2 border-primary-600 text-primary-600 hover:bg-primary-50;
+    @apply btn border-2 border-primary-400 text-primary-300 hover:bg-primary-400/10;
+  }
+
+  .glass-panel {
+    @apply bg-surface-800/70 backdrop-blur-md border border-primary-500/15;
+  }
+
+  .header-landing {
+    @apply backdrop-blur-md;
+    background-color: rgba(6, 20, 25, 0.12);
+    border-bottom: 1px solid rgba(186, 230, 253, 0.35);
+    box-shadow: inset 0 1px 0 rgba(224, 242, 254, 0.08);
+  }
+
+  .header-scrolled {
+    @apply backdrop-blur-md shadow-lg shadow-black/10;
+    background-color: rgba(10, 28, 34, 0.28);
+    border-bottom: 1px solid rgba(186, 230, 253, 0.4);
+    box-shadow:
+      inset 0 1px 0 rgba(224, 242, 254, 0.1),
+      0 4px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .hero-outline-text {
+    @apply font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-tight text-center;
+    color: rgba(255, 255, 255, 0.04);
+    -webkit-text-stroke: 1.5px rgba(207, 232, 254, 0.85);
+    paint-order: stroke fill;
+    text-shadow: 0 0 30px rgba(125, 211, 252, 0.12);
+  }
+
+  @media (min-width: 768px) {
+    .hero-outline-text {
+      -webkit-text-stroke-width: 2px;
+    }
   }
   
   .portfolio-item {
-    @apply overflow-hidden relative rounded-lg;
+    @apply overflow-hidden relative rounded-md border-0 bg-surface-800/80 p-0 shadow-lg shadow-black/30
+           transition-all duration-300 hover:shadow-primary-500/10 hover:shadow-xl;
+  }
+
+  .portfolio-item-caption {
+    @apply border-t border-primary-500/15 px-3 py-2.5;
   }
   
   .portfolio-overlay {
-    @apply absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 
-           group-hover:opacity-100 transition-opacity duration-300;
+    @apply absolute inset-0 bg-gradient-to-t from-surface-950/80 via-surface-950/20 to-transparent
+           flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300;
   }
 }
 
@@ -73,36 +123,49 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* For the portfolio filtering */
+/* Portfolio grid — stack on mobile, single row on tablet+ */
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .portfolio-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+
+  .portfolio-grid .portfolio-item {
+    flex: 1 1 0;
+    min-width: 0;
+  }
 }
 
 /* Portfolio item animations */
-.portfolio-item img {
+.portfolio-item-media img {
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.portfolio-item:hover img {
-  transform: scale(1.05);
+.portfolio-item:hover .portfolio-item-media img {
+  transform: scale(1.04);
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #071418;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #0d9488;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #14b8a6;
 }

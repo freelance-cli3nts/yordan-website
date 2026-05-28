@@ -1,4 +1,5 @@
 ---
+const heroPoster = `${import.meta.env.BASE_URL}hero-poster.jpg`;
 ---
 
 <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
@@ -11,15 +12,15 @@
       loop
       playsinline
       preload="auto"
-      poster="https://images.pexels.com/photos/6069552/pexels-photo-6069552.jpeg?auto=compress&cs=tinysrgb&w=1600"
+      poster={heroPoster}
       aria-label="Fashion design studio background video"
     >
       <source 
         src={`${import.meta.env.BASE_URL}hero.mp4`} type="video/mp4" 
       />      
       <img
-        src="https://images.pexels.com/photos/6069552/pexels-photo-6069552.jpeg?auto=compress&cs=tinysrgb&w=1600"
-        alt="Fashion design studio with fabric samples"
+        src={heroPoster}
+        alt="Custom design for stage and screen"
         class="object-cover w-full h-full"
         loading="eager"
       />

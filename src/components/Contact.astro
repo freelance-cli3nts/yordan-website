@@ -1,122 +1,186 @@
 ---
+const email = 'mihalevyordan@gmail.com';
+const phone = { display: '+359 897 857 153', href: 'tel:+359897857153' };
+const instagram = {
+  handle: '@yordan_mihalev',
+  href: 'https://www.instagram.com/yordan_mihalev',
+};
 ---
 
-<section id="contact" class="section-padding">
-  <div class="container-custom">
-    <div class="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto animate-on-scroll">
-      <h2 class="mb-5 text-center">Contact</h2>
-
-      <div class="glass-panel rounded-md p-5 sm:p-6 md:p-8 lg:p-10">
-        <form id="contact-form" class="space-y-4 md:space-y-5">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-            <div>
-              <label for="name" class="block text-xs md:text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                class="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-900/60 border border-primary-500/20 rounded-md text-white text-sm md:text-base placeholder-gray-500 focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
-                required
-              />
-            </div>
-            
-            <div>
-              <label for="email" class="block text-xs md:text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-900/60 border border-primary-500/20 rounded-md text-white text-sm md:text-base placeholder-gray-500 focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
-                required
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label for="subject" class="block text-xs md:text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Subject</label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              class="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-900/60 border border-primary-500/20 rounded-md text-white text-sm md:text-base placeholder-gray-500 focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
-              required
-            />
-          </div>
-          
-          <div>
-            <label for="project-type" class="block text-xs md:text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Project</label>
-            <select
-              id="project-type"
-              name="project-type"
-              class="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-900/60 border border-primary-500/20 rounded-md text-white text-sm md:text-base focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
-            >
-              <option value="film">Film</option>
-              <option value="theater">Theater</option>
-              <option value="fashion">Fashion</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          
-          <div>
-            <label for="message" class="block text-xs md:text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Message</label>
-            <textarea
-              id="message"
-              name="message"
-              rows="4"
-              class="w-full px-3 py-2 md:px-4 md:py-3 md:min-h-[160px] lg:min-h-[200px] bg-surface-900/60 border border-primary-500/20 rounded-md text-white text-sm md:text-base placeholder-gray-500 focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
-              required
-            ></textarea>
-          </div>
-          
-          <button type="submit" class="w-full btn-primary md:text-base md:py-3">
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
+<section id="contact" class="contact wrap" aria-labelledby="contact-title">
+  <div class="direct">
+    <h2 id="contact-title">Contact</h2>
+    <a class="email" href={`mailto:${email}`}>{email}</a>
+    <ul>
+      <li><a href={phone.href}>{phone.display}</a></li>
+      <li><a href={instagram.href} rel="noopener" target="_blank">Instagram {instagram.handle}</a></li>
+    </ul>
   </div>
+
+  <form class="form" novalidate>
+    <p class="intro">Or write here and the message goes straight to Yordan's inbox.</p>
+    <label>
+      Name
+      <input name="name" autocomplete="name" required />
+    </label>
+    <label>
+      Email
+      <input name="email" type="email" autocomplete="email" required />
+    </label>
+    <label>
+      Message
+      <textarea name="message" rows="5" required></textarea>
+    </label>
+    <button type="submit">Send message</button>
+    <p class="status" role="status" aria-live="polite"></p>
+  </form>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    emailjs.init("4odIy3ek0pUAxmrLa");
-    
-    const form = document.getElementById('contact-form');
-    const submitButton = form.querySelector('button[type="submit"]');
-    
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      submitButton.disabled = true;
-      submitButton.textContent = 'Sending...';
-      
-      const templateParams = {
-        name: form.name.value,
-        email: form.email.value,
-        subject: form.subject.value,
-        project_type: form['project-type'].value,
-        message: form.message.value
-      };
-      
-      emailjs.send(
-        'service_xnt843p',
-        'template_np3hg0l',
-        templateParams
-      )
-      .then(() => {
+  import emailjs from '@emailjs/browser';
+
+  document.addEventListener('astro:page-load', () => {
+    const form = document.querySelector<HTMLFormElement>('.contact .form');
+    if (!form) return;
+    const button = form.querySelector('button')!;
+    const status = form.querySelector('.status')!;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        status.textContent = 'Fill in your name, a valid email address and a message.';
+        form.querySelector<HTMLElement>(':invalid')?.focus();
+        return;
+      }
+
+      const data = new FormData(form);
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      status.textContent = '';
+
+      try {
+        await emailjs.send(
+          'service_xnt843p',
+          'template_np3hg0l',
+          {
+            name: data.get('name'),
+            email: data.get('email'),
+            subject: 'Message from the website',
+            project_type: 'Not specified',
+            message: data.get('message'),
+          },
+          { publicKey: '4odIy3ek0pUAxmrLa' },
+        );
         form.reset();
-        submitButton.disabled = false;
-        submitButton.textContent = 'Send';
-        alert('Thank you for your message! I will get back to you soon.');
-      })
-      .catch(error => {
-        console.error('Error sending email:', error);
-        submitButton.disabled = false;
-        submitButton.textContent = 'Send';
-        alert('Sorry, there was an error sending your message. Please try again later.');
-      });
+        status.textContent = 'Message sent. Yordan will reply by email.';
+      } catch {
+        status.textContent =
+          'Message not sent. Check your connection and try again, or email mihalevyordan@gmail.com.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Send message';
+      }
     });
   });
 </script>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 6rem);
+    padding-block: clamp(4rem, 10vw, 9rem);
+    border-top: 1px solid var(--line);
+  }
+
+  h2 {
+    font-size: var(--step-3);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .email {
+    display: inline-block;
+    font-family: var(--display);
+    font-size: clamp(1.25rem, 2.6vw, 2.25rem);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    text-decoration-thickness: 2px;
+  }
+
+  ul {
+    margin-top: 1.5rem;
+    padding: 0;
+    list-style: none;
+    font-size: var(--step-1);
+  }
+
+  li + li {
+    margin-top: 0.4rem;
+  }
+
+  .form {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 32rem;
+    align-self: end;
+  }
+
+  .intro {
+    color: var(--grey);
+  }
+
+  label {
+    display: grid;
+    gap: 0.4rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    padding: 0.7rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--grey);
+    border-radius: 0;
+    background: none;
+    font-size: var(--step-0);
+    resize: vertical;
+  }
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-bottom-color: var(--signal);
+    box-shadow: 0 1px 0 var(--signal);
+  }
+
+  button {
+    justify-self: start;
+    padding: 0.9rem 1.75rem;
+    border: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: var(--signal);
+    color: var(--paper);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .status:empty {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

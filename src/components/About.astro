@@ -1,43 +1,71 @@
 ---
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait.jpeg';
 ---
 
-<section id="on-set" class="section-padding">
-  <div class="container-custom">
-    <div class="grid md:grid-cols-[1.2fr_1fr] gap-4 md:gap-5 items-center">
-      <div class="relative animate-on-scroll">
-        <img 
-          src={`${import.meta.env.BASE_URL}designer-photo.jpeg`}
-          alt="Yordan Mihalev, costume designer" 
-          class="w-full h-auto min-h-[320px] md:min-h-[480px] object-cover rounded-md shadow-2xl shadow-black/40"
-        />
-        <div class="absolute -bottom-6 -right-6 bg-primary-600 text-white p-6 rounded-lg shadow-lg hidden md:block">
-          <p class="text-xl font-serif italic">
-            "Fashion is the armor to survive everyday life."
-          </p>
-          <p class="mt-2 text-sm text-right">— Bill Cunningham</p>
-        </div>
-      </div>
-      
-      <div class="animate-on-scroll md:pl-2">
-        <h2 class="mb-3">Yordan Mihalev</h2>
-        
-        <p class="mb-6 text-lg">
-          With over a decade of experience in costume design for both stage and screen, 
-          I blend historical accuracy with creative vision to bring characters to life through fabric and form.
-        </p>
-        
-        <p class="mb-6">
-          My approach combines meticulous research with innovative techniques, 
-          working closely with directors, actors, and production teams to ensure each costume 
-          not only looks stunning but also serves the narrative and enables authentic performances.
-        </p>
-        
-        <p>
-          Every project begins with deep research into the time period, character psychology, 
-          and practical performance needs. I'm passionate about sustainable practices, 
-          incorporating vintage materials and environmentally conscious processes whenever possible.
-        </p>
-      </div>
-    </div>
+<section id="about" class="about wrap" aria-labelledby="about-title">
+  <Image
+    class="portrait"
+    src={portrait}
+    alt="Yordan Mihalev"
+    width={1100}
+    widths={[480, 800, 1100]}
+    sizes="(min-width: 900px) 40vw, 90vw"
+    loading="lazy"
+  />
+  <div class="text">
+    <h2 id="about-title">About</h2>
+    <!-- TODO(client): replace with Yordan's own bio. -->
+    <p class="lead">
+      I design costumes for film and theatre. Every costume starts with research into the
+      period, the character and how the actor needs to move, and ends with something that
+      serves the story.
+    </p>
+    <p>
+      I work closely with directors, actors and production teams, from the first sketch to the
+      last fitting.
+    </p>
   </div>
 </section>
+
+<style>
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: end;
+    padding-block: clamp(4rem, 10vw, 9rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .portrait {
+    width: 100%;
+    filter: grayscale(1);
+  }
+
+  h2 {
+    font-size: var(--step-3);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  p {
+    max-width: var(--measure);
+    color: var(--grey);
+  }
+
+  p + p {
+    margin-top: 1em;
+  }
+
+  .lead {
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--paper);
+  }
+
+  @media (max-width: 899px) {
+    .about {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

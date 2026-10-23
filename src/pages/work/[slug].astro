@@ -171,6 +171,14 @@ const fullSizes = await Promise.all(
     margin-block: clamp(1.5rem, 4vw, 3rem) clamp(2rem, 5vw, 4rem);
   }
 
+  /* On desktop the title starts below the nav, which ends level with the middle of the
+     home page's N (see Header.astro). */
+  @media (min-width: 900px) {
+    .head {
+      padding-top: calc(var(--name-size) * 0.43 + var(--hero-top) - 3rem);
+    }
+  }
+
   /* Theatre pages lean right, film pages lean left, like their columns. */
   [data-side='right'] .head {
     text-align: right;

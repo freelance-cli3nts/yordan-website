@@ -13,9 +13,9 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
   </h1>
 
   <div class="reflection wrap" aria-hidden="true">
-    <div class="reflection-text">
-      <span>Yordan</span>
-      <span>Mihalev</span>
+    <div class="water">
+      <div class="reflection-text">Mihalev</div>
+      <canvas></canvas>
     </div>
   </div>
 
@@ -40,7 +40,6 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
   <svg class="filters" aria-hidden="true" focusable="false">
     <filter id="water" x="-5%" y="-5%" width="110%" height="110%">
       <feTurbulence
-        id="water-noise"
         type="fractalNoise"
         baseFrequency="0.0006 0.06"
         numOctaves="1"
@@ -48,7 +47,6 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
         result="noise"
       />
       <feDisplacementMap
-        id="water-map"
         in="SourceGraphic"
         in2="noise"
         scale="16"
@@ -62,7 +60,39 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
 </section>
 
 <script>
+  import { Ripples } from '../lib/ripples';
+
   let stop: (() => void) | undefined;
+
+  // Draws the reflection the way the CSS fallback shows it: "Mihalev" flipped at its
+  // baseline and squashed to 45% height.
+  function paintReflection(text: HTMLElement, width: number, height: number) {
+    const style = getComputedStyle(text);
+    const size = parseFloat(style.fontSize);
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(ratio, 0, 0, -0.45 * ratio, 0, 0);
+    ctx.font = `800 ${size}px ${style.fontFamily}`;
+    ctx.fillStyle = '#fff';
+    const word = text.textContent!.trim().toUpperCase();
+    const spacing = size * -0.035;
+    if ('letterSpacing' in ctx) {
+      ctx.letterSpacing = `${spacing}px`;
+      ctx.fillText(word, 0, 0);
+    } else {
+      let x = 0;
+      for (const letter of word) {
+        ctx.fillText(letter, x, 0);
+        x += ctx.measureText(letter).width + spacing;
+      }
+    }
+    return canvas;
+  }
 
   document.addEventListener('astro:page-load', () => {
     stop?.();
@@ -84,40 +114,118 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     if (reduceMotion) setPlaying(false);
     toggle.addEventListener('click', () => setPlaying(video.paused));
 
-    // The reflection: the noise drifts slowly and the ripple swells when the pointer moves over the name.
+    // The water: moving the pointer over the name or its reflection drops ripples into it.
+    // Without WebGL, or with reduced motion, the still CSS reflection stays.
     if (reduceMotion) return;
-    const noise = document.getElementById('water-noise')!;
-    const map = document.getElementById('water-map')!;
-    let visible = true;
-    let swell = 0;
+    const water = hero.querySelector<HTMLElement>('.water')!;
+    const text = water.querySelector<HTMLElement>('.reflection-text')!;
+    const canvas = water.querySelector('canvas')!;
+    let canvasRef = canvas;
+    // Ripples and their bend are sized to the name: as set for a large screen, smaller on
+    // a phone, where the water is only a couple of dozen pixels tall.
+    const scale = () => parseFloat(getComputedStyle(text).fontSize) / 224;
+    let ripples: Ripples | undefined;
     let frame = 0;
+    let visible = true;
+    let rain = 0;
+    let stopped = false;
 
-    const tick = (time: number) => {
-      const t = time / 1000;
-      swell *= 0.96;
-      noise.setAttribute(
-        'baseFrequency',
-        `${(0.0006 + Math.sin(t * 0.4) * 0.0002).toFixed(5)} ${(0.06 + Math.sin(t * 0.7) * 0.01).toFixed(5)}`,
-      );
-      map.setAttribute('scale', (16 + swell).toFixed(2));
+    const tick = () => {
+      ripples?.frame();
       frame = visible ? requestAnimationFrame(tick) : 0;
     };
 
+    const build = async () => {
+      await document.fonts.load(`800 1em ${getComputedStyle(text).fontFamily}`);
+      if (stopped) return;
+      ripples?.destroy();
+      const { width, height } = water.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const fresh = canvas.cloneNode() as HTMLCanvasElement;
+      canvas.replaceWith(fresh);
+      fresh.width = Math.round(width * ratio);
+      fresh.height = Math.round(height * ratio);
+      try {
+        ripples = Ripples.create(fresh, paintReflection(text, width, height), {
+          perturbance: Math.max(4, 8 * scale()),
+        });
+      } catch {
+        ripples = undefined;
+      }
+      water.toggleAttribute('data-live', !!ripples);
+      canvasRef = fresh;
+      if (ripples && !frame) frame = requestAnimationFrame(tick);
+    };
+
+    let lastWidth = 0;
+    const resize = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      if (width === lastWidth) return;
+      lastWidth = width;
+      build();
+    });
+    resize.observe(water);
+
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible && !frame) frame = requestAnimationFrame(tick);
+      if (visible && ripples && !frame) frame = requestAnimationFrame(tick);
     });
-    observer.observe(hero.querySelector('.reflection')!);
+    observer.observe(water);
 
+    // Over the reflection the drop lands under the pointer; over the name it lands at
+    // the mirrored spot, 0.45 times as far below the waterline.
+    const dropAt = (point: { clientX: number; clientY: number }, strength: number) => {
+      if (!ripples) return;
+      const box = canvasRef.getBoundingClientRect();
+      const x = (point.clientX - box.left) / box.width;
+      let y = point.clientY - box.top;
+      if (y < 0) y = -y * 0.45;
+      if (x < 0 || x > 1 || y > box.height) return;
+      ripples.drop(x, y / box.height, Math.max(6, 20 * scale()), strength);
+    };
+
+    // Mouse and pen through pointer events. Touch through touch events, because once a
+    // swipe turns into a scroll the browser cancels its pointer events but touchmove goes on.
     const onMove = (event: PointerEvent) => {
-      swell = Math.min(swell + Math.hypot(event.movementX, event.movementY) * 0.25, 30);
+      if (event.pointerType !== 'touch') dropAt(event, 0.01);
+    };
+    const onDown = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') dropAt(event, 0.14);
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      for (const touch of event.changedTouches) dropAt(touch, 0.14);
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      for (const touch of event.changedTouches) dropAt(touch, 0.04);
     };
     hero.addEventListener('pointermove', onMove);
+    hero.addEventListener('pointerdown', onDown);
+    hero.addEventListener('touchstart', onTouchStart, { passive: true });
+    hero.addEventListener('touchmove', onTouchMove, { passive: true });
+
+    // A drop now and then, so the water is alive without a pointer. Touch screens get
+    // more and stronger drops, since nothing hovers there.
+    const touchScreen = window.matchMedia('(hover: none)').matches;
+    rain = window.setInterval(
+      () => {
+        if (!visible) return;
+        const radius = Math.max(5, 14 * scale());
+        ripples?.drop(Math.random(), Math.random() * 0.6, radius, touchScreen ? 0.1 : 0.05);
+      },
+      touchScreen ? 1100 : 2400,
+    );
 
     stop = () => {
+      stopped = true;
       cancelAnimationFrame(frame);
+      clearInterval(rain);
+      resize.disconnect();
       observer.disconnect();
       hero.removeEventListener('pointermove', onMove);
+      hero.removeEventListener('pointerdown', onDown);
+      hero.removeEventListener('touchstart', onTouchStart);
+      hero.removeEventListener('touchmove', onTouchMove);
+      ripples?.destroy();
     };
   });
 </script>
@@ -127,7 +235,7 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
   .hero {
     --name-size: min(calc((100cqi - 2 * var(--gutter)) / 5.86), 24rem);
     container-type: inline-size;
-    padding-top: clamp(1rem, 4vw, 3rem);
+    padding-top: var(--hero-top);
   }
 
   .hero-name,
@@ -140,26 +248,49 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     text-transform: uppercase;
   }
 
-  .hero-name span,
-  .reflection-text span {
+  .hero-name span {
     display: block;
   }
 
-  /* Shows one line of the flipped name, which is "Mihalev" mirrored under itself. */
+  /* The reflection is "Mihalev" flipped at its baseline and squashed to 45% height,
+     so it reads as water seen at an angle. The baseline sits 0.805em down the line box. */
   .reflection {
-    height: calc(var(--name-size) * 0.62);
-    overflow: hidden;
-    margin-top: calc(var(--name-size) * 0.04);
     pointer-events: none;
     user-select: none;
-    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 90%);
-    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 90%);
+  }
+
+  .water {
+    position: relative;
+    height: calc(var(--name-size) * 0.38);
+    overflow: hidden;
+    margin-top: calc(var(--name-size) * -0.02);
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent 92%);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent 92%);
   }
 
   .reflection-text {
-    transform: scaleY(-1);
+    transform-origin: 0 0.805em;
+    transform: translateY(-0.805em) scaleY(-0.45);
     color: var(--paper);
     filter: url(#water);
+  }
+
+  /* With WebGL running, the canvas draws the reflection and its ripples instead. */
+  .water canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease);
+  }
+
+  .water[data-live] canvas {
+    opacity: 1;
+  }
+
+  .water[data-live] .reflection-text {
+    visibility: hidden;
   }
 
   .hero-line {

@@ -4,17 +4,17 @@ import portrait from '../assets/portrait.jpeg';
 ---
 
 <section id="about" class="about wrap" aria-labelledby="about-title">
+  <h2 id="about-title">About</h2>
   <Image
     class="portrait"
     src={portrait}
     alt="Yordan Mihalev"
-    width={1100}
-    widths={[480, 800, 1100]}
-    sizes="(min-width: 900px) 40vw, 90vw"
+    width={1400}
+    widths={[480, 800, 1100, 1400]}
+    sizes="(min-width: 900px) 55vw, 90vw"
     loading="lazy"
   />
   <div class="text">
-    <h2 id="about-title">About</h2>
     <!-- TODO(client): replace with Yordan's own bio. -->
     <p class="lead">
       I design costumes for film and theatre. Every costume starts with research into the
@@ -29,23 +29,35 @@ import portrait from '../assets/portrait.jpeg';
 </section>
 
 <style>
+  /* Desktop: the portrait takes the larger left side, title and text sit beside its foot.
+     Phones: title, then portrait, then text. */
   .about {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: end;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      'portrait .'
+      'portrait title'
+      'portrait text';
+    column-gap: clamp(2rem, 5vw, 5rem);
     padding-block: clamp(4rem, 10vw, 9rem);
     border-top: 1px solid var(--line);
   }
 
+  h2 {
+    grid-area: title;
+    font-size: var(--step-3);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
   .portrait {
+    grid-area: portrait;
     width: 100%;
     filter: grayscale(1);
   }
 
-  h2 {
-    font-size: var(--step-3);
-    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  .text {
+    grid-area: text;
   }
 
   p {
@@ -66,6 +78,12 @@ import portrait from '../assets/portrait.jpeg';
   @media (max-width: 899px) {
     .about {
       grid-template-columns: 1fr;
+      grid-template-rows: none;
+      grid-template-areas: 'title' 'portrait' 'text';
+    }
+
+    .portrait {
+      margin-bottom: 2rem;
     }
   }
 </style>

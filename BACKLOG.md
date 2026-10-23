@@ -9,7 +9,7 @@
       (`credits` and `summary` in `src/data/projects.ts`).
 - [ ] **New SwissTransfer deliveries** in `materials/incoming/` (four zips, June 2026): which project each
       belongs to. One contains "sketch for 1.jpg" / "sketch for 2.jpg", so it suits a sketch next to finished costume layout.
-- [ ] Feedback on the redesign: dark look, water reflection on the name, card stacks.
+- [ ] Feedback on round 2 (below): ripple water, nav beside the N, page-turn decks, phone slider.
 
 ## Waiting on us
 
@@ -18,6 +18,20 @@
       and `project_type` = "Not specified".
 - [ ] Bulgarian version? Both typefaces include Cyrillic.
 - [ ] Share preview image (`og:image`) uses the hero poster; swap in a stronger costume photo once chosen.
+
+## Done (feedback round 2, October 2026)
+
+- Water: the name's reflection is now a WebGL ripple simulation (after jquery.ripples, no jQuery),
+  driven by the pointer over the name or reflection. Reflection squashed to 45% height.
+  Falls back to the still CSS reflection without WebGL or with reduced motion.
+- Nav: desktop, a vertical list right-aligned beside "Yordan", from the top of the N to its middle
+  (scrolls away with the name); phones, a bar fixed at the bottom centre.
+- Work: both decks the same size (4:5), meeting in the middle a narrow gap apart; cards sit exactly
+  on top of each other so a deck reads as one card. Pages turn on the outer edge (film left,
+  theatre right); one big button centred underneath, looping; phones keep the column tabs and get
+  a slider that turns pages both ways.
+- About: bigger portrait on the left; on phones the title comes above it.
+- Contact: no title, full-width form, email / phone / Instagram in one row with white icons.
 
 ## Done (redesign, October 2026)
 

@@ -1,8 +1,6 @@
 ---
 import { url } from '../lib/url';
 
-const isHome = Astro.url.pathname === url();
-
 const navItems = [
   { name: 'Work', href: url('#work') },
   { name: 'About', href: url('#about') },
@@ -10,73 +8,83 @@ const navItems = [
 ];
 ---
 
-<header class="header wrap" data-home={isHome ? '' : undefined}>
-  <a class="mark" href={url()}>Yordan Mihalev</a>
-  <nav aria-label="Main">
-    <ul>
-      {navItems.map((item) => (
-        <li><a href={item.href}>{item.name}</a></li>
-      ))}
-    </ul>
-  </nav>
-</header>
-
-<script>
-  // On the home page the small name stays hidden until the big one in the hero scrolls away.
-  document.addEventListener('astro:page-load', () => {
-    const header = document.querySelector<HTMLElement>('.header');
-    const name = document.querySelector('.hero-name');
-    if (!header || !name) return;
-    new IntersectionObserver(([entry]) => {
-      header.toggleAttribute('data-show-mark', !entry.isIntersecting);
-    }).observe(name);
-  });
-</script>
+<nav class="nav" aria-label="Main">
+  <ul>
+    {navItems.map((item) => (
+      <li><a href={item.href}>{item.name}</a></li>
+    ))}
+  </ul>
+</nav>
 
 <style>
-  .header {
-    position: sticky;
-    top: 0;
+  /* Desktop: a vertical list in the space right of "Yordan". It runs from the top of the N
+     to the middle of the N, right-aligned with the end of "Mihalev", and scrolls away with the
+     name (pinned, it would run over the right-aligned theatre column).
+     The offsets are Unbounded's metrics at the hero's line height: the cap top sits 0.055em
+     below the line box and the cap is 0.75em tall. */
+  .nav {
+    --cap-top: calc(var(--hero-top) + var(--name-size) * 0.055);
+    --cap-middle: calc(var(--hero-top) + var(--name-size) * 0.43);
+    position: absolute;
     z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    min-height: 3.5rem;
-    background: var(--ink);
-  }
-
-  .mark {
-    font-family: var(--display);
-    font-size: 0.95rem;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: opacity 0.3s var(--ease);
-  }
-
-  .header[data-home]:not([data-show-mark]) .mark {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s var(--ease), visibility 0s 0.3s;
+    top: var(--cap-top);
+    right: var(--gutter);
+    height: calc(var(--cap-middle) - var(--cap-top));
   }
 
   ul {
     display: flex;
-    gap: clamp(1rem, 3vw, 2.25rem);
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 100%;
     padding: 0;
     list-style: none;
   }
 
-  nav a {
-    font-size: 0.95rem;
+  a {
+    display: block;
+    font-size: clamp(0.8rem, var(--name-size) * 0.085, 1.25rem);
     font-weight: 600;
+    line-height: 1;
     text-decoration: none;
+    /* Trim to the letters, so Work starts at the top of the N and Contact ends at its middle. */
+    text-box: trim-both cap alphabetic;
   }
 
-  nav a:hover {
+  a:hover {
     text-decoration: underline;
     text-decoration-color: var(--signal);
     text-decoration-thickness: 2px;
+  }
+
+  /* Phones: a bar at the bottom of the screen. */
+  @media (max-width: 899px) {
+    .nav {
+      position: fixed;
+      top: auto;
+      right: auto;
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      left: 50%;
+      height: auto;
+      transform: translateX(-50%);
+    }
+
+    ul {
+      flex-direction: row;
+      gap: 0.25rem;
+      padding: 0.3rem;
+      border: 1px solid rgb(255 255 255 / 0.25);
+      border-radius: 999px;
+      background: rgb(0 0 0 / 0.75);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+
+    a {
+      padding: 0.7rem 1.1rem;
+      font-size: var(--step--1);
+      text-box: normal;
+    }
   }
 </style>

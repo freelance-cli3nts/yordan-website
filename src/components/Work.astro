@@ -88,13 +88,21 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
 
             {count > 1 && (
               <div class="controls">
-                <button type="button" data-step="-1" aria-label="Previous project">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+                <button type="button" class="next" aria-label="Next project">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d={sideOf[column] === 'left' ? 'M15 5 8 12l7 7' : 'm9 5 7 7-7 7'} />
+                  </svg>
                 </button>
+                <input
+                  class="slider"
+                  type="range"
+                  min="1"
+                  max={count}
+                  step="1"
+                  value="1"
+                  aria-label={`${columns[column].title}: project`}
+                />
                 <p aria-live="polite"><span class="current">1</span> of {count}</p>
-                <button type="button" data-step="1" aria-label="Next project">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
-                </button>
               </div>
             )}
           </div>
@@ -107,67 +115,110 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
 <script>
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Cards turn like pages, hinged on the column's outer edge: film turns to the left,
+  // theatre to the right. Going forward the top card turns away and tucks in at the back;
+  // going back the previous card turns in on top. The one button only goes forward and
+  // starts over after the last card. On phones a slider and swipes go both ways.
   function setUpDeck(deck: HTMLElement) {
     const cards = [...deck.querySelectorAll<HTMLElement>('.card')];
     const current = deck.querySelector('.current');
+    const slider = deck.querySelector<HTMLInputElement>('.slider');
     if (cards.length < 2) return;
+    const side = deck.dataset.side === 'left' ? -1 : 1;
+    const turned = `rotateY(${side * 90}deg)`;
     let first = 0;
-    let busy = false;
+    let target = 0;
+    let running = false;
 
-    const place = (skip?: HTMLElement) => {
+    const place = () => {
       cards.forEach((card, i) => {
         const pos = (i - first + cards.length) % cards.length;
         card.inert = pos > 0;
-        if (card !== skip) card.style.setProperty('--pos', String(pos));
+        card.style.setProperty('--pos', String(pos));
       });
       if (current) current.textContent = String(first + 1);
+      if (slider) slider.value = String(first + 1);
     };
 
-    // The top card slides off toward the side you asked for, then tucks in at the back
-    // (going forward) or just behind the card that replaces it (going back).
-    const move = async (step: 1 | -1) => {
-      if (busy) return;
-      busy = true;
+    const forward = async (duration: number) => {
       const leaving = cards[first];
-      first = (first + step + cards.length) % cards.length;
-      leaving.classList.add('is-leaving');
-      place(leaving);
-
-      if (!reduceMotion()) {
-        const x = step > 0 ? '70%' : '-70%';
-        const turn = step > 0 ? '8deg' : '-8deg';
-        await leaving.animate(
-          [{ opacity: 1 }, { transform: `translateX(${x}) rotate(${turn})`, opacity: 0 }],
-          { duration: 380, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' },
-        ).finished;
-      }
-
-      leaving.classList.remove('is-leaving');
-      leaving.classList.add('is-returning');
+      first = (first + 1) % cards.length;
+      leaving.classList.add('is-turning');
       place();
-      leaving.getAnimations().forEach((animation) => animation.cancel());
-      requestAnimationFrame(() => leaving.classList.remove('is-returning'));
-      busy = false;
+      if (!reduceMotion()) {
+        await leaving.animate([{ transform: 'none' }, { transform: turned }], {
+          duration,
+          easing: 'cubic-bezier(0.55, 0, 0.75, 0.4)',
+        }).finished;
+      }
+      leaving.classList.remove('is-turning');
     };
 
-    deck.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((button) => {
-      button.addEventListener('click', () => move(button.dataset.step === '1' ? 1 : -1));
+    const back = async (duration: number) => {
+      first = (first - 1 + cards.length) % cards.length;
+      const entering = cards[first];
+      entering.classList.add('is-turning');
+      place();
+      if (!reduceMotion()) {
+        await entering.animate([{ transform: turned }, { transform: 'none' }], {
+          duration,
+          easing: 'cubic-bezier(0.25, 0.6, 0.45, 1)',
+        }).finished;
+      }
+      entering.classList.remove('is-turning');
+    };
+
+    // Steps one card at a time toward `target`, faster when the slider jumps several.
+    const run = async () => {
+      if (running) return;
+      running = true;
+      while (first !== target) {
+        const ahead = (target - first + cards.length) % cards.length;
+        const steps = Math.min(ahead, cards.length - ahead);
+        const duration = steps > 1 ? 260 : 480;
+        if (ahead <= cards.length - ahead) await forward(duration);
+        else await back(duration);
+      }
+      running = false;
+    };
+
+    const go = (index: number) => {
+      target = (index + cards.length) % cards.length;
+      run();
+    };
+
+    deck.querySelector('.next')?.addEventListener('click', () => go(target + 1));
+
+    // The slider never wraps: moving it left always turns pages back.
+    slider?.addEventListener('input', async () => {
+      target = Number(slider.value) - 1;
+      if (running) return;
+      running = true;
+      while (first !== target) {
+        const duration = Math.abs(target - first) > 1 ? 260 : 480;
+        if (target > first) await forward(duration);
+        else await back(duration);
+      }
+      running = false;
     });
 
     deck.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowRight') move(1);
-      if (event.key === 'ArrowLeft') move(-1);
+      if (event.target === slider) return;
+      if (event.key === 'ArrowRight') go(target + 1);
+      if (event.key === 'ArrowLeft') go(target - 1);
     });
 
+    // A swipe toward the column's side turns forward, the other way turns back.
     let startX: number | undefined;
-    deck.addEventListener('pointerdown', (event) => {
+    const stack = deck.querySelector<HTMLElement>('.stack')!;
+    stack.addEventListener('pointerdown', (event) => {
       if (event.pointerType !== 'mouse') startX = event.clientX;
     });
-    deck.addEventListener('pointerup', (event) => {
+    stack.addEventListener('pointerup', (event) => {
       if (startX === undefined) return;
       const dx = event.clientX - startX;
       startX = undefined;
-      if (Math.abs(dx) > 50) move(dx > 0 ? 1 : -1);
+      if (Math.abs(dx) > 50) go(target + (Math.sign(dx) === side ? 1 : -1));
     });
   }
 
@@ -197,10 +248,11 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
     padding-block: clamp(4rem, 10vw, 9rem);
   }
 
+  /* The two decks fill the page from gutter to gutter and meet in the middle, a narrow gap apart. */
   .columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: clamp(2rem, 6vw, 6rem);
+    gap: clamp(0.75rem, 1.5vw, 1.5rem);
     align-items: start;
   }
 
@@ -222,89 +274,58 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
     text-align: right;
   }
 
-  /* The stack: every card shares one grid cell; --pos 0 is on top. */
   .deck {
-    --offset: 14px;
     touch-action: pan-y;
   }
 
+  /* Every card sits exactly on the others, so the deck looks like one card; --pos 0 is on top. */
   .stack {
     display: grid;
-    padding: calc(var(--offset) * 2) 0 0;
+    padding: 0;
     list-style: none;
-  }
-
-  /* Both piles fan toward the middle of the page, so their outer edges line up with the titles. */
-  .deck[data-side='left'] .stack {
-    padding-right: calc(var(--offset) * 2);
-  }
-
-  .deck[data-side='right'] .stack {
-    padding-left: calc(var(--offset) * 2);
+    perspective: 2400px;
   }
 
   .card {
     grid-area: 1 / 1;
     z-index: calc(10 - var(--pos));
     background: var(--ink);
-    transition:
-      transform 0.45s var(--ease),
-      opacity 0.45s var(--ease),
-      filter 0.45s var(--ease);
+    backface-visibility: hidden;
   }
 
-  /* Film: a strict pile that steps straight back. */
   .deck[data-side='left'] .card {
-    transform: translate(calc(var(--pos) * var(--offset)), calc(var(--pos) * var(--offset) * -1));
+    transform-origin: left center;
   }
 
-  /* Theatre: a looser pile, each card turned a little. */
   .deck[data-side='right'] .card {
-    transform: translate(calc(var(--pos) * var(--offset) * -1), calc(var(--pos) * var(--offset) * -1))
-      rotate(calc(var(--pos) * -2deg));
-  }
-
-  .deck[data-side='right'] {
-    max-width: 80%;
-    margin-left: auto;
-  }
-
-  .card[inert] {
-    filter: brightness(0.45);
+    transform-origin: right center;
   }
 
   .card[inert] .caption {
     visibility: hidden;
   }
 
-  .card.is-leaving {
+  .card.is-turning {
     z-index: 20;
-    filter: none;
   }
 
-  .card.is-returning {
-    opacity: 0;
-    transition: none;
+  .card.is-turning .caption {
+    visibility: visible;
   }
 
   .card a {
     display: block;
   }
 
+  /* 4:5, but never so tall that the caption and button drop below the window:
+     the card keeps its width and the photo is cropped instead. */
   .card img,
   .frame {
     width: 100%;
+    aspect-ratio: 4 / 5;
+    max-height: calc(100svh - 15rem);
     object-fit: cover;
     background: var(--line);
-  }
-
-  .deck[data-side='left'] .card img,
-  .deck[data-side='left'] .frame {
-    aspect-ratio: 3 / 2;
-  }
-
-  .deck[data-side='right'] .card img {
-    aspect-ratio: 4 / 5;
   }
 
   .frame {
@@ -328,25 +349,23 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
     text-align: right;
   }
 
+  /* One big button, centred under the deck, with the count below it. */
   .controls {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    margin-top: 1.25rem;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
     color: var(--grey);
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
   }
 
-  .deck[data-side='right'] .controls {
-    justify-content: flex-end;
-  }
-
-  .controls button {
+  .next {
     display: grid;
     place-items: center;
-    width: 3rem;
-    height: 3rem;
+    width: 4.5rem;
+    height: 4.5rem;
     border: 1px solid var(--paper);
     border-radius: 50%;
     background: none;
@@ -354,16 +373,20 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
     transition: border-color 0.2s, background 0.2s;
   }
 
-  .controls button:hover {
+  .next:hover {
     border-color: var(--signal);
     background: var(--signal);
   }
 
-  .controls svg {
-    width: 1.25rem;
+  .next svg {
+    width: 1.75rem;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.75;
+  }
+
+  .slider {
+    display: none;
   }
 
   .switch {
@@ -387,18 +410,69 @@ const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right
       display: none;
     }
 
+    /* Phones also have the tabs above and the nav bar below. */
+    .card img,
+    .frame {
+      max-height: calc(100svh - 19rem);
+    }
+
     .column[data-column='theatre'] .column-head,
     .deck[data-side='right'] .caption {
       text-align: left;
     }
 
-    .deck[data-side='right'] {
-      max-width: none;
+    /* Phones: a slider in place of the button, turning pages both ways. */
+    .next {
+      display: none;
+    }
+
+    .controls {
+      flex-direction: row;
+      gap: 1rem;
+    }
+
+    .slider {
+      display: block;
+      flex: 1;
+      height: 2.75rem;
+      margin: 0;
+      background: none;
+      accent-color: var(--paper);
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .slider::-webkit-slider-runnable-track {
+      height: 2px;
+      background: var(--grey);
+    }
+
+    .slider::-moz-range-track {
+      height: 2px;
+      background: var(--grey);
+    }
+
+    .slider::-webkit-slider-thumb {
+      width: 1.5rem;
+      height: 1.5rem;
+      margin-top: calc(-0.75rem + 1px);
+      border: 0;
+      border-radius: 50%;
+      background: var(--paper);
+      appearance: none;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 0;
+      border-radius: 50%;
+      background: var(--paper);
     }
 
     .switch {
       position: sticky;
-      top: 3.5rem;
+      top: 0;
       z-index: 40;
       display: grid;
       grid-template-columns: 1fr 1fr;

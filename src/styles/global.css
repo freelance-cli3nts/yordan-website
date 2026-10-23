@@ -16,6 +16,9 @@
 
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
   --measure: 34rem;
+  /* The hero name's size and top; the nav lines up with them on every page. */
+  --hero-top: clamp(1rem, 4vw, 3rem);
+  --name-size: min(calc((100vw - 2 * var(--gutter)) / 5.86), 24rem);
   --ease: cubic-bezier(0.65, 0, 0.35, 1);
 
   color-scheme: dark;
@@ -102,6 +105,13 @@ a:hover {
 
 .wrap {
   padding-inline: var(--gutter);
+}
+
+/* Room for the nav bar at the bottom on phones. */
+@media (max-width: 899px) {
+  body {
+    padding-bottom: 5rem;
+  }
 }
 
 /* Page transitions: the page slides toward the column you came from.

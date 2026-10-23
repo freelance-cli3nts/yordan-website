@@ -19,6 +19,19 @@
 - [ ] Bulgarian version? Both typefaces include Cyrillic.
 - [ ] Share preview image (`og:image`) uses the hero poster; swap in a stronger costume photo once chosen.
 
+## Done (feedback round 3, October 2026)
+
+- Only the landing and the video scroll freely. Work, About and Contact are one screen each;
+  Work and About stay pinned and the next screen slides up over them (sticky, `.screen` in
+  global.css). The nav targets are in-flow markers in index.astro.
+- The ripple now covers the whole name, not only the reflection (canvas over the name; the real
+  heading stays, transparent, for screen readers and search).
+- Tagline in the signal red. Video button: round, in the middle, with water rings inside;
+  top right on phones.
+- Contact form: placeholders instead of the intro line (message placeholder lightly edited for
+  grammar). On phones the form is tighter and the nav bar hides while typing, so the button stays
+  above the keyboard; Android also resizes the page for the keyboard (`interactive-widget`).
+
 ## Done (feedback round 2, October 2026)
 
 - Water: the name's reflection is now a WebGL ripple simulation (after jquery.ripples, no jQuery),

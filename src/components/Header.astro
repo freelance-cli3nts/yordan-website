@@ -70,6 +70,11 @@ const navItems = [
       transform: translateX(-50%);
     }
 
+    /* Out of the way while typing, so the keyboard leaves the form's button in view. */
+    :global(body:has(input:focus, textarea:focus)) .nav {
+      display: none;
+    }
+
     ul {
       flex-direction: row;
       gap: 0.25rem;

@@ -8,7 +8,21 @@ import Contact from '../components/Contact.astro';
 
 <Layout title="Yordan Mihalev, costume designer for film and theatre">
   <Hero />
-  <Work />
-  <About />
-  <Contact />
+  <!-- The nav targets sit in the normal flow, at the top of each screen. Work and About stay
+       pinned once they fill the window, so their own positions can't be scrolled to. -->
+  <div class="screens">
+    <span id="work" class="target"></span>
+    <Work />
+    <span id="about" class="target"></span>
+    <About />
+    <span id="contact" class="target"></span>
+    <Contact />
+  </div>
 </Layout>
+
+<style>
+  .target {
+    display: block;
+    scroll-snap-align: start;
+  }
+</style>

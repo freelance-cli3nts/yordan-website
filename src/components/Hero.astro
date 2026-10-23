@@ -7,16 +7,19 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
 ---
 
 <section class="hero" aria-label="Introduction">
-  <h1 class="hero-name wrap">
-    <span>Yordan</span>
-    <span>Mihalev</span>
-  </h1>
+  <div class="name-water">
+    <h1 class="hero-name wrap">
+      <span>Yordan</span>
+      <span>Mihalev</span>
+    </h1>
 
-  <div class="reflection wrap" aria-hidden="true">
-    <div class="water">
-      <div class="reflection-text">Mihalev</div>
-      <canvas></canvas>
+    <div class="reflection wrap" aria-hidden="true">
+      <div class="water">
+        <div class="reflection-text">Mihalev</div>
+      </div>
     </div>
+
+    <canvas aria-hidden="true"></canvas>
   </div>
 
   <p class="hero-line wrap">Costume designer for film and theatre</p>
@@ -34,7 +37,17 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
       <source src={url('hero-mobile.mp4')} type="video/mp4" media="(max-aspect-ratio: 3/4)" />
       <source src={url('hero.mp4')} type="video/mp4" />
     </video>
-    <button class="film-toggle" type="button" aria-pressed="false">Pause video</button>
+    <button class="film-toggle" type="button" aria-pressed="false" aria-label="Pause video">
+      <span class="ring" aria-hidden="true"></span>
+      <span class="ring" aria-hidden="true"></span>
+      <span class="ring" aria-hidden="true"></span>
+      <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5v14M16 5v14" />
+      </svg>
+      <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5.5v13l10.5-6.5z" />
+      </svg>
+    </button>
   </div>
 
   <svg class="filters" aria-hidden="true" focusable="false">
@@ -64,33 +77,67 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
 
   let stop: (() => void) | undefined;
 
-  // Draws the reflection the way the CSS fallback shows it: "Mihalev" flipped at its
-  // baseline and squashed to 45% height.
-  function paintReflection(text: HTMLElement, width: number, height: number) {
-    const style = getComputedStyle(text);
+  // Draws the name exactly where the page lays it out, plus its reflection:
+  // "Mihalev" flipped at its baseline, squashed to 45% height and fading out.
+  function paintName(block: HTMLElement, width: number, height: number, ratio: number) {
+    const name = block.querySelector<HTMLElement>('.hero-name')!;
+    const water = block.querySelector<HTMLElement>('.water')!;
+    const style = getComputedStyle(name);
     const size = parseFloat(style.fontSize);
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const origin = block.getBoundingClientRect();
+    const font = `800 ${size}px ${style.fontFamily}`;
+    const spacing = size * -0.035;
+
+    const write = (ctx: CanvasRenderingContext2D, word: string) => {
+      ctx.font = font;
+      ctx.fillStyle = '#fff';
+      if ('letterSpacing' in ctx) {
+        ctx.letterSpacing = `${spacing}px`;
+        ctx.fillText(word, 0, 0);
+        return;
+      }
+      let x = 0;
+      for (const letter of word) {
+        ctx.fillText(letter, x, 0);
+        x += ctx.measureText(letter).width + spacing;
+      }
+    };
+
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     const ctx = canvas.getContext('2d')!;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.setTransform(ratio, 0, 0, -0.45 * ratio, 0, 0);
-    ctx.font = `800 ${size}px ${style.fontFamily}`;
-    ctx.fillStyle = '#fff';
-    const word = text.textContent!.trim().toUpperCase();
-    const spacing = size * -0.035;
-    if ('letterSpacing' in ctx) {
-      ctx.letterSpacing = `${spacing}px`;
-      ctx.fillText(word, 0, 0);
-    } else {
-      let x = 0;
-      for (const letter of word) {
-        ctx.fillText(letter, x, 0);
-        x += ctx.measureText(letter).width + spacing;
-      }
+
+    // The baseline sits 0.805em down each line box (Unbounded at line-height 0.86).
+    const lines = [...name.querySelectorAll('span')];
+    for (const line of lines) {
+      const box = line.getBoundingClientRect();
+      const x = box.left - origin.left;
+      const y = box.top - origin.top + size * 0.805;
+      ctx.setTransform(ratio, 0, 0, ratio, x * ratio, y * ratio);
+      write(ctx, line.textContent!.trim().toUpperCase());
     }
+
+    const pool = water.getBoundingClientRect();
+    const last = lines[lines.length - 1].getBoundingClientRect();
+    const mirror = document.createElement('canvas');
+    mirror.width = Math.round(pool.width * ratio);
+    mirror.height = Math.round(pool.height * ratio);
+    const m = mirror.getContext('2d')!;
+    m.setTransform(ratio, 0, 0, -0.45 * ratio, (last.left - pool.left) * ratio, 0);
+    write(m, lines[lines.length - 1].textContent!.trim().toUpperCase());
+    m.setTransform(1, 0, 0, 1, 0, 0);
+    m.globalCompositeOperation = 'destination-in';
+    const fade = m.createLinearGradient(0, 0, 0, mirror.height);
+    fade.addColorStop(0, 'rgb(0 0 0 / 0.5)');
+    fade.addColorStop(0.92, 'rgb(0 0 0 / 0)');
+    m.fillStyle = fade;
+    m.fillRect(0, 0, mirror.width, mirror.height);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(mirror, (pool.left - origin.left) * ratio, (pool.top - origin.top) * ratio);
     return canvas;
   }
 
@@ -109,26 +156,23 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
       if (playing) video.play().catch(() => {});
       else video.pause();
       toggle.setAttribute('aria-pressed', String(!playing));
-      toggle.textContent = playing ? 'Pause video' : 'Play video';
+      toggle.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
     };
     if (reduceMotion) setPlaying(false);
     toggle.addEventListener('click', () => setPlaying(video.paused));
 
-    // The water: moving the pointer over the name or its reflection drops ripples into it.
-    // Without WebGL, or with reduced motion, the still CSS reflection stays.
+    // The water: the whole name and its reflection ripple under the pointer or finger.
+    // Without WebGL, or with reduced motion, the page's own text and still reflection stay.
     if (reduceMotion) return;
-    const water = hero.querySelector<HTMLElement>('.water')!;
-    const text = water.querySelector<HTMLElement>('.reflection-text')!;
-    const canvas = water.querySelector('canvas')!;
-    let canvasRef = canvas;
-    // Ripples and their bend are sized to the name: as set for a large screen, smaller on
-    // a phone, where the water is only a couple of dozen pixels tall.
-    const scale = () => parseFloat(getComputedStyle(text).fontSize) / 224;
+    const block = hero.querySelector<HTMLElement>('.name-water')!;
+    const name = block.querySelector<HTMLElement>('.hero-name')!;
+    let canvas = block.querySelector('canvas')!;
     let ripples: Ripples | undefined;
     let frame = 0;
     let visible = true;
-    let rain = 0;
     let stopped = false;
+    // Ripples and their bend are sized to the name: as set for a large screen, smaller on a phone.
+    const scale = () => parseFloat(getComputedStyle(name).fontSize) / 224;
 
     const tick = () => {
       ripples?.frame();
@@ -136,24 +180,25 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     };
 
     const build = async () => {
-      await document.fonts.load(`800 1em ${getComputedStyle(text).fontFamily}`);
+      await document.fonts.load(`800 1em ${getComputedStyle(name).fontFamily}`);
       if (stopped) return;
       ripples?.destroy();
-      const { width, height } = water.getBoundingClientRect();
+      const { width, height } = block.getBoundingClientRect();
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      // A canvas whose WebGL context was lost can't get a new one, so start from a fresh one.
       const fresh = canvas.cloneNode() as HTMLCanvasElement;
       canvas.replaceWith(fresh);
-      fresh.width = Math.round(width * ratio);
-      fresh.height = Math.round(height * ratio);
+      canvas = fresh;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
       try {
-        ripples = Ripples.create(fresh, paintReflection(text, width, height), {
+        ripples = Ripples.create(canvas, paintName(block, width, height, ratio), {
           perturbance: Math.max(4, 8 * scale()),
         });
       } catch {
         ripples = undefined;
       }
-      water.toggleAttribute('data-live', !!ripples);
-      canvasRef = fresh;
+      block.toggleAttribute('data-live', !!ripples);
       if (ripples && !frame) frame = requestAnimationFrame(tick);
     };
 
@@ -164,24 +209,21 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
       lastWidth = width;
       build();
     });
-    resize.observe(water);
+    resize.observe(block);
 
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (visible && ripples && !frame) frame = requestAnimationFrame(tick);
     });
-    observer.observe(water);
+    observer.observe(block);
 
-    // Over the reflection the drop lands under the pointer; over the name it lands at
-    // the mirrored spot, 0.45 times as far below the waterline.
     const dropAt = (point: { clientX: number; clientY: number }, strength: number) => {
       if (!ripples) return;
-      const box = canvasRef.getBoundingClientRect();
+      const box = canvas.getBoundingClientRect();
       const x = (point.clientX - box.left) / box.width;
-      let y = point.clientY - box.top;
-      if (y < 0) y = -y * 0.45;
-      if (x < 0 || x > 1 || y > box.height) return;
-      ripples.drop(x, y / box.height, Math.max(6, 20 * scale()), strength);
+      const y = (point.clientY - box.top) / box.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) return;
+      ripples.drop(x, y, Math.max(6, 20 * scale()), strength);
     };
 
     // Mouse and pen through pointer events. Touch through touch events, because once a
@@ -206,11 +248,11 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     // A drop now and then, so the water is alive without a pointer. Touch screens get
     // more and stronger drops, since nothing hovers there.
     const touchScreen = window.matchMedia('(hover: none)').matches;
-    rain = window.setInterval(
+    const rain = window.setInterval(
       () => {
         if (!visible) return;
         const radius = Math.max(5, 14 * scale());
-        ripples?.drop(Math.random(), Math.random() * 0.6, radius, touchScreen ? 0.1 : 0.05);
+        ripples?.drop(Math.random(), Math.random(), radius, touchScreen ? 0.1 : 0.05);
       },
       touchScreen ? 1100 : 2400,
     );
@@ -238,6 +280,10 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     padding-top: var(--hero-top);
   }
 
+  .name-water {
+    position: relative;
+  }
+
   .hero-name,
   .reflection-text {
     font-family: var(--display);
@@ -260,7 +306,6 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
   }
 
   .water {
-    position: relative;
     height: calc(var(--name-size) * 0.38);
     overflow: hidden;
     margin-top: calc(var(--name-size) * -0.02);
@@ -275,27 +320,34 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     filter: url(#water);
   }
 
-  /* With WebGL running, the canvas draws the reflection and its ripples instead. */
-  .water canvas {
+  /* With WebGL running, the canvas draws the name and reflection with their ripples.
+     The heading stays in the page, transparent, for screen readers and search. */
+  .name-water canvas {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.6s var(--ease);
   }
 
-  .water[data-live] canvas {
+  .name-water[data-live] canvas {
     opacity: 1;
   }
 
-  .water[data-live] .reflection-text {
+  .name-water[data-live] .hero-name {
+    color: transparent;
+  }
+
+  .name-water[data-live] .water {
     visibility: hidden;
   }
 
   .hero-line {
     margin-top: clamp(1.5rem, 4vw, 3rem);
     margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    color: var(--signal);
     font-size: var(--step-1);
     font-weight: 500;
   }
@@ -318,19 +370,102 @@ const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
     }
   }
 
+  /* A round button in the middle of the film, with rings spreading inside it like a drop
+     in water. The rings stop while the film is paused. */
   .film-toggle {
+    --size: 5.5rem;
     position: absolute;
-    right: var(--gutter);
-    bottom: 1rem;
-    padding: 0.4rem 0.8rem;
-    border: 1px solid rgb(255 255 255 / 0.6);
-    background: rgb(0 0 0 / 0.5);
-    font-size: var(--step--1);
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: var(--size);
+    height: var(--size);
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.35);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transform: translate(-50%, -50%);
     cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
   }
 
   .film-toggle:hover {
     border-color: var(--signal);
+    background: rgb(225 18 31 / 0.35);
+  }
+
+  .film-toggle > * {
+    grid-area: 1 / 1;
+  }
+
+  .ring {
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    border-radius: 50%;
+    opacity: 0;
+    animation: ripple 3s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  }
+
+  .ring:nth-child(2) {
+    animation-delay: 1s;
+  }
+
+  .ring:nth-child(3) {
+    animation-delay: 2s;
+  }
+
+  @keyframes ripple {
+    from {
+      transform: scale(0.1);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  .film-toggle[aria-pressed='true'] .ring {
+    animation-play-state: paused;
+    visibility: hidden;
+  }
+
+  .film-toggle svg {
+    position: relative;
+    width: 1.75rem;
+    fill: none;
+    stroke: var(--paper);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .icon-play {
+    fill: var(--paper) !important;
+  }
+
+  .film-toggle[aria-pressed='false'] .icon-play,
+  .film-toggle[aria-pressed='true'] .icon-pause {
+    display: none;
+  }
+
+  /* Phones: smaller, in the top right corner of the film. */
+  @media (max-width: 899px) {
+    .film-toggle {
+      --size: 3.5rem;
+      top: 1rem;
+      right: var(--gutter);
+      left: auto;
+      transform: none;
+    }
+
+    .film-toggle svg {
+      width: 1.25rem;
+    }
   }
 
   .filters {

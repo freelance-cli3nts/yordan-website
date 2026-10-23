@@ -107,6 +107,30 @@ a:hover {
   padding-inline: var(--gutter);
 }
 
+/* Work, About and Contact each fill the window. Work and About stay pinned once they reach
+   the top, and the next screen slides up over them; Contact scrolls on to the footer.
+   The nav targets (index.astro) snap the page to the top of each screen. */
+html {
+  scroll-snap-type: y proximity;
+}
+
+.screen {
+  position: relative;
+  height: 100svh;
+  overflow: clip;
+  background: var(--ink);
+}
+
+.screen:not(:last-child) {
+  position: sticky;
+  top: 0;
+}
+
+.screen:last-child {
+  height: auto;
+  min-height: 100svh;
+}
+
 /* Room for the nav bar at the bottom on phones. */
 @media (max-width: 899px) {
   body {

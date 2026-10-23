@@ -1,0 +1,379 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import { columns, projects, projectsIn, type Project } from '../../data/projects';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+const { project } = Astro.props as { project: Project };
+
+const siblings = projectsIn(project.column);
+const next = siblings[(siblings.indexOf(project) + 1) % siblings.length];
+const side = project.column === 'film' ? 'left' : 'right';
+// "Back" heads to the opposite side from the one the page came in on.
+const backSide = side === 'left' ? 'right' : 'left';
+
+const gallery = project.images.filter((image) => image !== project.cover);
+const fullSizes = await Promise.all(
+  gallery.map((image) => getImage({ src: image, width: 2000, format: 'webp' })),
+);
+---
+
+<Layout
+  title={`${project.title}, costumes by Yordan Mihalev`}
+  description={`${project.title}${project.subtitle ? `, ${project.subtitle.toLowerCase()}` : ''}. Costume design by Yordan Mihalev.`}
+  column={project.column}
+>
+  <article class="project wrap" data-side={side}>
+    <a class="back" href={url('#work')} data-slide={backSide}>
+      {columns[project.column].title}
+    </a>
+
+    <header class="head">
+      <h1>{project.title}</h1>
+      {project.subtitle && <p class="subtitle">{project.subtitle}</p>}
+      {project.credits.length > 0 && (
+        <dl class="credits">
+          {project.credits.map((credit) => (
+            <div>
+              <dt>{credit.label}</dt>
+              <dd>{credit.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {project.summary && <p class="summary">{project.summary}</p>}
+    </header>
+
+    <Image
+      class="cover"
+      src={project.cover}
+      alt={`${project.title}, cover image`}
+      width={2000}
+      widths={[800, 1400, 2000]}
+      sizes="(min-width: 900px) 80vw, 100vw"
+      loading="eager"
+      transition:name={`cover-${project.slug}`}
+    />
+
+    {project.video && (
+      <video class="film" src={url(project.video)} controls preload="metadata" playsinline />
+    )}
+
+    <ul class="gallery">
+      {gallery.map((image, i) => (
+        <li>
+          <button
+            type="button"
+            data-index={i}
+            data-full={fullSizes[i].src}
+            aria-label={`Open image ${i + 1} of ${gallery.length} full size`}
+          >
+            <Image
+              src={image}
+              alt={`${project.title}, image ${i + 1} of ${gallery.length}`}
+              width={1000}
+              widths={[400, 700, 1000]}
+              sizes="(min-width: 1100px) 31vw, (min-width: 700px) 46vw, 92vw"
+              loading="lazy"
+            />
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    {next !== project && (
+      <a class="next" href={url(`work/${next.slug}/`)} data-slide={side}>
+        <span>Next project</span>
+        {next.title}
+      </a>
+    )}
+  </article>
+
+  <dialog class="lightbox" aria-label={`${project.title} images`}>
+    <img alt="" />
+    <p class="lightbox-count" aria-live="polite"></p>
+    <button type="button" class="lightbox-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <button type="button" class="lightbox-step" data-step="-1" aria-label="Previous image">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+    </button>
+    <button type="button" class="lightbox-step" data-step="1" aria-label="Next image">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+    </button>
+  </dialog>
+</Layout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const dialog = document.querySelector<HTMLDialogElement>('.lightbox');
+    if (!dialog) return;
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.gallery button')];
+    const image = dialog.querySelector('img')!;
+    const count = dialog.querySelector('.lightbox-count')!;
+    let index = 0;
+
+    const show = (i: number) => {
+      index = (i + buttons.length) % buttons.length;
+      const thumb = buttons[index].querySelector('img')!;
+      image.src = buttons[index].dataset.full!;
+      image.alt = thumb.alt;
+      count.textContent = `${index + 1} of ${buttons.length}`;
+    };
+
+    buttons.forEach((button) =>
+      button.addEventListener('click', () => {
+        show(Number(button.dataset.index));
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((button) =>
+      button.addEventListener('click', () => show(index + Number(button.dataset.step))),
+    );
+    dialog.querySelector('.lightbox-close')!.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') show(index + 1);
+      if (event.key === 'ArrowLeft') show(index - 1);
+    });
+    dialog.addEventListener('close', () => buttons[index]?.focus());
+  });
+</script>
+
+<style>
+  .project {
+    padding-block: clamp(2rem, 5vw, 4rem) clamp(4rem, 10vw, 8rem);
+  }
+
+  .back {
+    display: inline-block;
+    color: var(--grey);
+    font-size: var(--step--1);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .back::before {
+    content: '← ';
+  }
+
+  .back:hover {
+    color: var(--paper);
+  }
+
+  .head {
+    margin-block: clamp(1.5rem, 4vw, 3rem) clamp(2rem, 5vw, 4rem);
+  }
+
+  /* Theatre pages lean right, film pages lean left, like their columns. */
+  [data-side='right'] .head {
+    text-align: right;
+  }
+
+  h1 {
+    font-size: var(--step-3);
+  }
+
+  .subtitle {
+    margin-top: 0.75rem;
+    font-size: var(--step-1);
+    color: var(--grey);
+  }
+
+  .credits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+
+  [data-side='right'] .credits {
+    justify-content: flex-end;
+  }
+
+  dt {
+    color: var(--grey);
+    font-size: var(--step--1);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .summary {
+    max-width: var(--measure);
+    margin-top: 1.5rem;
+  }
+
+  [data-side='right'] .summary {
+    margin-left: auto;
+  }
+
+  .cover {
+    width: auto;
+    max-height: 85svh;
+    background: var(--line);
+  }
+
+  [data-side='right'] .cover {
+    margin-left: auto;
+  }
+
+  .film {
+    width: 100%;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    background: var(--line);
+  }
+
+  .gallery {
+    columns: 3 18rem;
+    column-gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    margin-top: clamp(2rem, 5vw, 4rem);
+    padding: 0;
+    list-style: none;
+  }
+
+  .gallery li {
+    break-inside: avoid;
+    margin-bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+  }
+
+  .gallery button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--line);
+    cursor: zoom-in;
+  }
+
+  .gallery img {
+    width: 100%;
+    transition: opacity 0.2s;
+  }
+
+  .gallery button:hover img {
+    opacity: 0.85;
+  }
+
+  .next {
+    display: block;
+    margin-top: clamp(4rem, 10vw, 8rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--display);
+    font-size: var(--step-2);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  [data-side='right'] .next {
+    text-align: right;
+  }
+
+  .next span {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--grey);
+  }
+
+  .next:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--signal);
+  }
+
+  .lightbox {
+    width: 100vw;
+    height: 100svh;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .lightbox::backdrop {
+    background: var(--ink);
+  }
+
+  .lightbox img {
+    width: 100%;
+    height: 100%;
+    padding: 4rem 4.5rem;
+    object-fit: contain;
+  }
+
+  .lightbox-count {
+    position: absolute;
+    left: var(--gutter);
+    top: 1.25rem;
+    color: var(--grey);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lightbox button {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--paper);
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+  }
+
+  .lightbox button:hover {
+    border-color: var(--signal);
+    background: var(--signal);
+  }
+
+  .lightbox svg {
+    width: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+  }
+
+  .lightbox-close {
+    top: 0.75rem;
+    right: var(--gutter);
+  }
+
+  .lightbox-step {
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .lightbox-step[data-step='-1'] {
+    left: 0.75rem;
+  }
+
+  .lightbox-step[data-step='1'] {
+    right: 0.75rem;
+  }
+
+  @media (max-width: 699px) {
+    .lightbox img {
+      padding: 4rem 0.5rem 5rem;
+    }
+
+    .lightbox-step {
+      top: auto;
+      bottom: 1rem;
+      translate: none;
+    }
+  }
+</style>

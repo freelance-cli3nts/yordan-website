@@ -1,0 +1,424 @@
+---
+import { Image } from 'astro:assets';
+import { columns, projectsIn, type Column } from '../data/projects';
+import { url } from '../lib/url';
+
+// Shown in the film column until the client sends film material.
+const filmPlaceholders = 3;
+
+const order: Column[] = ['film', 'theatre'];
+// On phones only one column shows at a time; open on the first one that has real projects.
+const firstShown = order.find((column) => projectsIn(column).length > 0) ?? order[0];
+// Each column's cards leave toward its own side of the page.
+const sideOf: Record<Column, 'left' | 'right'> = { film: 'left', theatre: 'right' };
+---
+
+<section id="work" class="work wrap" aria-labelledby="work-title">
+  <h2 id="work-title" class="visually-hidden">Work</h2>
+
+  <div class="switch" role="tablist" aria-label="Choose a column">
+    {order.map((column) => (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${column}`}
+        aria-controls={`column-${column}`}
+        aria-selected={column === firstShown ? 'true' : 'false'}
+        data-column={column}
+      >
+        {columns[column].title}
+      </button>
+    ))}
+  </div>
+
+  <div class="columns">
+    {order.map((column) => {
+      const projects = projectsIn(column);
+      const count = projects.length || (column === 'film' ? filmPlaceholders : 0);
+      return (
+        <section
+          class="column"
+          id={`column-${column}`}
+          data-column={column}
+          data-active={column === firstShown ? '' : undefined}
+          role="tabpanel"
+          aria-labelledby={`tab-${column}`}
+        >
+          <header class="column-head">
+            <h3>{columns[column].title}</h3>
+            <p>{columns[column].description}</p>
+          </header>
+
+          <div class="deck" data-side={sideOf[column]}>
+            <ol class="stack">
+              {projects.map((project, pos) => (
+                <li class="card" style={`--pos: ${pos}`} inert={pos > 0}>
+                  <a
+                    href={url(`work/${project.slug}/`)}
+                    data-slide={sideOf[column]}
+                    aria-label={`${project.title}, open project`}
+                  >
+                    <Image
+                      src={project.cover}
+                      alt=""
+                      width={1200}
+                      widths={[480, 800, 1200]}
+                      sizes="(min-width: 900px) 45vw, 90vw"
+                      loading="lazy"
+                      transition:name={`cover-${project.slug}`}
+                    />
+                  </a>
+                  <div class="caption">
+                    <h4>{project.title}</h4>
+                    {project.subtitle && <p>{project.subtitle}</p>}
+                  </div>
+                </li>
+              ))}
+              {!projects.length &&
+                Array.from({ length: count }, (_, pos) => (
+                  <li class="card is-placeholder" style={`--pos: ${pos}`} inert={pos > 0}>
+                    <div class="frame" />
+                    <div class="caption">
+                      <h4>Film project {pos + 1}</h4>
+                      <p>Production, studio and year</p>
+                    </div>
+                  </li>
+                ))}
+            </ol>
+
+            {count > 1 && (
+              <div class="controls">
+                <button type="button" data-step="-1" aria-label="Previous project">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+                </button>
+                <p aria-live="polite"><span class="current">1</span> of {count}</p>
+                <button type="button" data-step="1" aria-label="Next project">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    })}
+  </div>
+</section>
+
+<script>
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function setUpDeck(deck: HTMLElement) {
+    const cards = [...deck.querySelectorAll<HTMLElement>('.card')];
+    const current = deck.querySelector('.current');
+    if (cards.length < 2) return;
+    let first = 0;
+    let busy = false;
+
+    const place = (skip?: HTMLElement) => {
+      cards.forEach((card, i) => {
+        const pos = (i - first + cards.length) % cards.length;
+        card.inert = pos > 0;
+        if (card !== skip) card.style.setProperty('--pos', String(pos));
+      });
+      if (current) current.textContent = String(first + 1);
+    };
+
+    // The top card slides off toward the side you asked for, then tucks in at the back
+    // (going forward) or just behind the card that replaces it (going back).
+    const move = async (step: 1 | -1) => {
+      if (busy) return;
+      busy = true;
+      const leaving = cards[first];
+      first = (first + step + cards.length) % cards.length;
+      leaving.classList.add('is-leaving');
+      place(leaving);
+
+      if (!reduceMotion()) {
+        const x = step > 0 ? '70%' : '-70%';
+        const turn = step > 0 ? '8deg' : '-8deg';
+        await leaving.animate(
+          [{ opacity: 1 }, { transform: `translateX(${x}) rotate(${turn})`, opacity: 0 }],
+          { duration: 380, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' },
+        ).finished;
+      }
+
+      leaving.classList.remove('is-leaving');
+      leaving.classList.add('is-returning');
+      place();
+      leaving.getAnimations().forEach((animation) => animation.cancel());
+      requestAnimationFrame(() => leaving.classList.remove('is-returning'));
+      busy = false;
+    };
+
+    deck.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((button) => {
+      button.addEventListener('click', () => move(button.dataset.step === '1' ? 1 : -1));
+    });
+
+    deck.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') move(1);
+      if (event.key === 'ArrowLeft') move(-1);
+    });
+
+    let startX: number | undefined;
+    deck.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse') startX = event.clientX;
+    });
+    deck.addEventListener('pointerup', (event) => {
+      if (startX === undefined) return;
+      const dx = event.clientX - startX;
+      startX = undefined;
+      if (Math.abs(dx) > 50) move(dx > 0 ? 1 : -1);
+    });
+  }
+
+  function setUpSwitch(work: HTMLElement) {
+    const tabs = [...work.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...work.querySelectorAll<HTMLElement>('.column')];
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        panels.forEach((panel) =>
+          panel.toggleAttribute('data-active', panel.dataset.column === tab.dataset.column),
+        );
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    const work = document.querySelector<HTMLElement>('.work');
+    if (!work) return;
+    work.querySelectorAll<HTMLElement>('.deck').forEach(setUpDeck);
+    setUpSwitch(work);
+  });
+</script>
+
+<style>
+  .work {
+    padding-block: clamp(4rem, 10vw, 9rem);
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .column-head {
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .column-head h3 {
+    font-size: var(--step-2);
+  }
+
+  .column-head p {
+    margin-top: 0.5rem;
+    color: var(--grey);
+  }
+
+  /* The theatre column sits on the right and reads right-aligned, mirroring film. */
+  .column[data-column='theatre'] .column-head {
+    text-align: right;
+  }
+
+  /* The stack: every card shares one grid cell; --pos 0 is on top. */
+  .deck {
+    --offset: 14px;
+    touch-action: pan-y;
+  }
+
+  .stack {
+    display: grid;
+    padding: calc(var(--offset) * 2) 0 0;
+    list-style: none;
+  }
+
+  /* Both piles fan toward the middle of the page, so their outer edges line up with the titles. */
+  .deck[data-side='left'] .stack {
+    padding-right: calc(var(--offset) * 2);
+  }
+
+  .deck[data-side='right'] .stack {
+    padding-left: calc(var(--offset) * 2);
+  }
+
+  .card {
+    grid-area: 1 / 1;
+    z-index: calc(10 - var(--pos));
+    background: var(--ink);
+    transition:
+      transform 0.45s var(--ease),
+      opacity 0.45s var(--ease),
+      filter 0.45s var(--ease);
+  }
+
+  /* Film: a strict pile that steps straight back. */
+  .deck[data-side='left'] .card {
+    transform: translate(calc(var(--pos) * var(--offset)), calc(var(--pos) * var(--offset) * -1));
+  }
+
+  /* Theatre: a looser pile, each card turned a little. */
+  .deck[data-side='right'] .card {
+    transform: translate(calc(var(--pos) * var(--offset) * -1), calc(var(--pos) * var(--offset) * -1))
+      rotate(calc(var(--pos) * -2deg));
+  }
+
+  .deck[data-side='right'] {
+    max-width: 80%;
+    margin-left: auto;
+  }
+
+  .card[inert] {
+    filter: brightness(0.45);
+  }
+
+  .card[inert] .caption {
+    visibility: hidden;
+  }
+
+  .card.is-leaving {
+    z-index: 20;
+    filter: none;
+  }
+
+  .card.is-returning {
+    opacity: 0;
+    transition: none;
+  }
+
+  .card a {
+    display: block;
+  }
+
+  .card img,
+  .frame {
+    width: 100%;
+    object-fit: cover;
+    background: var(--line);
+  }
+
+  .deck[data-side='left'] .card img,
+  .deck[data-side='left'] .frame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .deck[data-side='right'] .card img {
+    aspect-ratio: 4 / 5;
+  }
+
+  .frame {
+    border: 1px dashed #444;
+  }
+
+  .caption {
+    padding-top: 1rem;
+  }
+
+  .caption h4 {
+    font-size: var(--step-1);
+  }
+
+  .caption p {
+    margin-top: 0.25rem;
+    color: var(--grey);
+  }
+
+  .deck[data-side='right'] .caption {
+    text-align: right;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    color: var(--grey);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .deck[data-side='right'] .controls {
+    justify-content: flex-end;
+  }
+
+  .controls button {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--paper);
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .controls button:hover {
+    border-color: var(--signal);
+    background: var(--signal);
+  }
+
+  .controls svg {
+    width: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+  }
+
+  .switch {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .work {
+      padding-top: 2rem;
+    }
+
+    .columns {
+      grid-template-columns: 1fr;
+    }
+
+    .column:not([data-active]) {
+      display: none;
+    }
+
+    .column-head h3 {
+      display: none;
+    }
+
+    .column[data-column='theatre'] .column-head,
+    .deck[data-side='right'] .caption {
+      text-align: left;
+    }
+
+    .deck[data-side='right'] {
+      max-width: none;
+    }
+
+    .switch {
+      position: sticky;
+      top: 3.5rem;
+      z-index: 40;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 1.5rem;
+      background: var(--ink);
+      border: 1px solid var(--paper);
+    }
+
+    .switch button {
+      padding: 0.75rem 0.5rem;
+      border: 0;
+      background: none;
+      font-size: var(--step--1);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .switch [aria-selected='true'] {
+      background: var(--paper);
+      color: var(--ink);
+    }
+  }
+</style>

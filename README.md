@@ -1,48 +1,47 @@
-# Astro Starter Kit: Basics
+# Yordan Mihalev, costume designer
 
-```sh
-npm create astro@latest -- --template basics
-```
+Portfolio site for Yordan Mihalev. Static [Astro](https://astro.build) site, deployed to GitHub Pages
+by `.github/workflows/deploy.yml` on every push to `main`.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+## Commands
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+| Command           | Action                                     |
+| :---------------- | :----------------------------------------- |
+| `npm ci`          | Install dependencies                       |
+| `npm run dev`     | Dev server at `localhost:4321`             |
+| `npm run build`   | Build to `./dist/` (not committed)         |
+| `npm run preview` | Serve the build locally                    |
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+To test the GitHub Pages sub-path locally: `BASE_URL=/yordan-website/ npm run build && BASE_URL=/yordan-website/ npm run preview`.
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+## Structure
 
 ```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+src/
+  data/projects.ts        all portfolio projects and the two columns
+  assets/work/<slug>/     project photos (optimised at build, never link them directly)
+  assets/                 hero poster and portrait
+  components/             Hero (name + water reflection), Work (two card stacks), About, Contact
+  pages/index.astro       home page
+  pages/work/[slug].astro one page per project
+  lib/url.ts              prefixes links with the deploy base path
+public/                   files served as-is: hero videos, project videos, favicon
+materials/incoming/       raw deliveries from the client (not published)
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Adding a project
 
-## 🧞 Commands
+1. Put the photos in `src/assets/work/<slug>/` (lowercase file extensions: `.jpg`, `.png`, `.webp`).
+2. Videos go in `public/work/<slug>/`. Re-encode to H.264 first; HEVC files don't play in Firefox or
+   most Chrome installs:
+   `ffmpeg -i in.mov -c:v libx264 -crf 27 -preset slow -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 96k video.mp4`
+3. Add an entry to `projects` in `src/data/projects.ts` with `column: 'film'` (left) or `'theatre'` (right).
+   The film column shows placeholder cards until it has at least one project.
 
-All commands are run from the root of the project, from a terminal:
+## Custom domain
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. In the repo settings, under Pages, enter the domain and follow GitHub's DNS instructions.
+2. Under Settings → Secrets and variables → Actions → Variables, add `SITE_URL` (`https://<domain>/`) and `BASE_URL` (`/`).
+3. Re-run the deploy workflow.
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Open work is tracked in [BACKLOG.md](BACKLOG.md).

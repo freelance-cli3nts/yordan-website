@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,15 +24,18 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
+      # With a custom domain, set the repository variables SITE_URL (e.g. https://example.com/)
+      # and BASE_URL ("/"). Without them the site builds for <owner>.github.io/<repo>/.
       - name: Build Astro site
         env:
-          BASE_URL: ${{ format('/{0}/', github.event.repository.name) }}
-          SITE_URL: ${{ format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+          BASE_URL: ${{ vars.BASE_URL || format('/{0}/', github.event.repository.name) }}
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
         run: npm run build
 
       - name: Upload artifact

@@ -1,57 +1,210 @@
 ---
-const heroPoster = `${import.meta.env.BASE_URL}hero-poster.jpg`;
+import { getImage } from 'astro:assets';
+import heroPoster from '../assets/hero-poster.jpg';
+import { url } from '../lib/url';
+
+const poster = await getImage({ src: heroPoster, width: 1600, format: 'webp' });
 ---
 
-<section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
-  <!-- Hero Background Video -->
-  <div class="absolute inset-0 z-0">
+<section class="hero" aria-label="Introduction">
+  <h1 class="hero-name wrap">
+    <span>Yordan</span>
+    <span>Mihalev</span>
+  </h1>
+
+  <div class="reflection wrap" aria-hidden="true">
+    <div class="reflection-text">
+      <span>Yordan</span>
+      <span>Mihalev</span>
+    </div>
+  </div>
+
+  <p class="hero-line wrap">Costume designer for film and theatre</p>
+
+  <div class="hero-film">
     <video
-      class="object-cover w-full h-full"
       autoplay
       muted
       loop
       playsinline
-      preload="auto"
-      poster={heroPoster}
-      aria-label="Fashion design studio background video"
+      preload="metadata"
+      poster={poster.src}
+      aria-hidden="true"
     >
-      <source 
-        src={`${import.meta.env.BASE_URL}hero.mp4`} type="video/mp4" 
-      />      
-      <img
-        src={heroPoster}
-        alt="Custom design for stage and screen"
-        class="object-cover w-full h-full"
-        loading="eager"
-      />
+      <source src={url('hero-mobile.mp4')} type="video/mp4" media="(max-aspect-ratio: 3/4)" />
+      <source src={url('hero.mp4')} type="video/mp4" />
     </video>
-    <div class="absolute inset-0 bg-gradient-to-t from-[#061419]/80 via-transparent to-[#061419]/20"></div>
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-600/10 via-transparent to-accent-500/10"></div>
+    <button class="film-toggle" type="button" aria-pressed="false">Pause video</button>
   </div>
-  
-  <!-- Hero Content -->
-  <div class="container-custom relative z-10 flex flex-col items-center text-center px-4">
-    <h1 class="hero-outline-text animate-fade-in">
-      Custom Design
-      <span class="block mt-2 sm:mt-3">Stage &amp; Screen</span>
-    </h1>
-    
-    <div class="flex flex-col sm:flex-row justify-center gap-3 mt-8 md:mt-10 animate-fade-in">
-      <a href="#costume-design" class="btn-primary">
-        View Portfolio
-      </a>
-      <a href="#contact" class="btn-outline border-primary-400/60 text-primary-200">
-        Contact
-      </a>
-    </div>
-  </div>
-  
-  <!-- Scroll Down Indicator -->
-  <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
-    <a href="#costume-design" aria-label="Scroll to Costume Design">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-primary-300">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 5.25l-7.5 7.5-7.5-7.5m15 6l-7.5 7.5-7.5-7.5" />
-      </svg>
-    </a>
-  </div>
+
+  <svg class="filters" aria-hidden="true" focusable="false">
+    <filter id="water" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence
+        id="water-noise"
+        type="fractalNoise"
+        baseFrequency="0.0006 0.06"
+        numOctaves="1"
+        seed="4"
+        result="noise"
+      />
+      <feDisplacementMap
+        id="water-map"
+        in="SourceGraphic"
+        in2="noise"
+        scale="16"
+        xChannelSelector="R"
+        yChannelSelector="B"
+        result="rippled"
+      />
+      <feGaussianBlur in="rippled" stdDeviation="0.5 1.2" />
+    </filter>
+  </svg>
 </section>
+
+<script>
+  let stop: (() => void) | undefined;
+
+  document.addEventListener('astro:page-load', () => {
+    stop?.();
+    stop = undefined;
+
+    const hero = document.querySelector<HTMLElement>('.hero');
+    if (!hero) return;
+
+    const video = hero.querySelector('video')!;
+    const toggle = hero.querySelector<HTMLButtonElement>('.film-toggle')!;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const setPlaying = (playing: boolean) => {
+      if (playing) video.play().catch(() => {});
+      else video.pause();
+      toggle.setAttribute('aria-pressed', String(!playing));
+      toggle.textContent = playing ? 'Pause video' : 'Play video';
+    };
+    if (reduceMotion) setPlaying(false);
+    toggle.addEventListener('click', () => setPlaying(video.paused));
+
+    // The reflection: the noise drifts slowly and the ripple swells when the pointer moves over the name.
+    if (reduceMotion) return;
+    const noise = document.getElementById('water-noise')!;
+    const map = document.getElementById('water-map')!;
+    let visible = true;
+    let swell = 0;
+    let frame = 0;
+
+    const tick = (time: number) => {
+      const t = time / 1000;
+      swell *= 0.96;
+      noise.setAttribute(
+        'baseFrequency',
+        `${(0.0006 + Math.sin(t * 0.4) * 0.0002).toFixed(5)} ${(0.06 + Math.sin(t * 0.7) * 0.01).toFixed(5)}`,
+      );
+      map.setAttribute('scale', (16 + swell).toFixed(2));
+      frame = visible ? requestAnimationFrame(tick) : 0;
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !frame) frame = requestAnimationFrame(tick);
+    });
+    observer.observe(hero.querySelector('.reflection')!);
+
+    const onMove = (event: PointerEvent) => {
+      swell = Math.min(swell + Math.hypot(event.movementX, event.movementY) * 0.25, 30);
+    };
+    hero.addEventListener('pointermove', onMove);
+
+    stop = () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      hero.removeEventListener('pointermove', onMove);
+    };
+  });
+</script>
+
+<style>
+  /* The name is sized so "Mihalev" runs exactly from gutter to gutter. */
+  .hero {
+    --name-size: min(calc((100cqi - 2 * var(--gutter)) / 5.86), 24rem);
+    container-type: inline-size;
+    padding-top: clamp(1rem, 4vw, 3rem);
+  }
+
+  .hero-name,
+  .reflection-text {
+    font-family: var(--display);
+    font-size: var(--name-size);
+    font-weight: 800;
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+
+  .hero-name span,
+  .reflection-text span {
+    display: block;
+  }
+
+  /* Shows one line of the flipped name, which is "Mihalev" mirrored under itself. */
+  .reflection {
+    height: calc(var(--name-size) * 0.62);
+    overflow: hidden;
+    margin-top: calc(var(--name-size) * 0.04);
+    pointer-events: none;
+    user-select: none;
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 90%);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 90%);
+  }
+
+  .reflection-text {
+    transform: scaleY(-1);
+    color: var(--paper);
+    filter: url(#water);
+  }
+
+  .hero-line {
+    margin-top: clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    font-size: var(--step-1);
+    font-weight: 500;
+  }
+
+  .hero-film {
+    position: relative;
+  }
+
+  .hero-film video {
+    width: 100%;
+    aspect-ratio: 1998 / 1080;
+    object-fit: cover;
+    background: var(--line);
+  }
+
+  @media (max-aspect-ratio: 3/4) {
+    .hero-film video {
+      aspect-ratio: 9 / 16;
+      max-height: 85svh;
+    }
+  }
+
+  .film-toggle {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 1rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    background: rgb(0 0 0 / 0.5);
+    font-size: var(--step--1);
+    cursor: pointer;
+  }
+
+  .film-toggle:hover {
+    border-color: var(--signal);
+  }
+
+  .filters {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+</style>

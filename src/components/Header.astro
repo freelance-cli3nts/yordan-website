@@ -1,93 +1,82 @@
 ---
+import { url } from '../lib/url';
+
+const isHome = Astro.url.pathname === url();
+
 const navItems = [
-  { name: "Home", url: "#home" },
-  { name: "Costume Design", url: "#costume-design" },
-  { name: "On-set", url: "#on-set" },
-  { name: "Contact", url: "#contact" },
+  { name: 'Work', href: url('#work') },
+  { name: 'About', href: url('#about') },
+  { name: 'Contact', href: url('#contact') },
 ];
 ---
 
-<header class="header-landing fixed w-full top-0 z-50 transition-all duration-300" id="main-header">
-  <div class="container-custom py-3 flex items-center justify-between">
-    <a href="#home" class="text-xl font-serif font-bold tracking-tight">
-      <span class="text-primary-400">YORDANS</span>
-      <span class="text-white">DESIGNS</span>
-    </a>
-    
-    <!-- Desktop Navigation -->
-    <nav class="hidden md:flex items-center space-x-6">
+<header class="header wrap" data-home={isHome ? '' : undefined}>
+  <a class="mark" href={url()}>Yordan Mihalev</a>
+  <nav aria-label="Main">
+    <ul>
       {navItems.map((item) => (
-        <a 
-          href={item.url} 
-          class="text-gray-300 hover:text-primary-300 text-sm font-medium tracking-wide uppercase transition-colors duration-300"
-        >
-          {item.name}
-        </a>
+        <li><a href={item.href}>{item.name}</a></li>
       ))}
-    </nav>
-    
-    <!-- Mobile Menu Button -->
-    <button 
-      class="md:hidden text-gray-200 hover:text-primary-300 focus:outline-none" 
-      id="mobile-menu-button"
-      aria-label="Toggle mobile menu"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-      </svg>
-    </button>
-  </div>
-  
-  <!-- Mobile Menu (Hidden by default) -->
-  <div 
-    id="mobile-menu" 
-    class="md:hidden glass-panel w-full absolute transform -translate-y-full transition-transform duration-300 ease-in-out"
-  >
-    <div class="container-custom py-3 flex flex-col space-y-2">
-      {navItems.map((item) => (
-        <a 
-          href={item.url} 
-          class="text-gray-200 hover:text-primary-300 py-2 block font-medium mobile-menu-link"
-        >
-          {item.name}
-        </a>
-      ))}
-    </div>
-  </div>
+    </ul>
+  </nav>
 </header>
 
 <script>
-  const header = document.getElementById('main-header');
-  const handleScroll = () => {
-    if (window.scrollY > 50) {
-      header.classList.add('header-scrolled');
-      header.classList.remove('header-landing');
-    } else {
-      header.classList.remove('header-scrolled');
-      header.classList.add('header-landing');
-    }
-  };
-  
-  handleScroll();
-  window.addEventListener('scroll', handleScroll);
-  
-  const mobileMenuButton = document.getElementById('mobile-menu-button');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const mobileMenuLinks = document.querySelectorAll('.mobile-menu-link');
-  
-  const toggleMobileMenu = () => {
-    if (mobileMenu.classList.contains('-translate-y-full')) {
-      mobileMenu.classList.remove('-translate-y-full');
-      mobileMenu.classList.add('translate-y-0');
-    } else {
-      mobileMenu.classList.add('-translate-y-full');
-      mobileMenu.classList.remove('translate-y-0');
-    }
-  };
-  
-  mobileMenuButton.addEventListener('click', toggleMobileMenu);
-  
-  mobileMenuLinks.forEach(link => {
-    link.addEventListener('click', toggleMobileMenu);
+  // On the home page the small name stays hidden until the big one in the hero scrolls away.
+  document.addEventListener('astro:page-load', () => {
+    const header = document.querySelector<HTMLElement>('.header');
+    const name = document.querySelector('.hero-name');
+    if (!header || !name) return;
+    new IntersectionObserver(([entry]) => {
+      header.toggleAttribute('data-show-mark', !entry.isIntersecting);
+    }).observe(name);
   });
 </script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.5rem;
+    background: var(--ink);
+  }
+
+  .mark {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .header[data-home]:not([data-show-mark]) .mark {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s var(--ease), visibility 0s 0.3s;
+  }
+
+  ul {
+    display: flex;
+    gap: clamp(1rem, 3vw, 2.25rem);
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--signal);
+    text-decoration-thickness: 2px;
+  }
+</style>
